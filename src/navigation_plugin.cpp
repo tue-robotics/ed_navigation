@@ -13,7 +13,7 @@ void transformChull(const geo::Pose3D& pose, std::vector<geo::Vector3>& chull)
 
 // --
 
-void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& constraint)
+void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& constraint, const double& offset)
 {
     if (chull.size() < 3)
     {
@@ -23,7 +23,7 @@ void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& co
 
     chull.push_back(chull[0]);
 
-    double dx,dy,xi,yi;
+    double dx,dy,xi,yi,xs,ys,length;
     for (unsigned int i = 0; i < chull.size()-1; ++i)
     {
         if (i > 0)
@@ -31,10 +31,16 @@ void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& co
 
         xi = chull[i].x;
         yi = chull[i].y;
+
         dx = chull[i+1].x - xi;
         dy = chull[i+1].y - yi;
 
-        constraint << "-(x-" << xi << ")*" << dy << "+(y-" << yi << ")*" << dx << "> 0";
+        length = sqrt(dx * dx + dy * dy);
+
+        xs = xi + (dy/length)*offset;
+        ys = yi - (dx/length)*offset;
+
+        constraint << "-(x-" << xs << ")*" << dy << "+(y-" << ys << ")*" << dx << " > 0";
     }
 }
 
@@ -127,13 +133,21 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             if (r.value("name", name) && name == req.area_names[i])
             {
                 found_area = true;
-                if (!r.readArray("shape", tue::config::REQUIRED))
+                std::vector<geo::Vector3> chull;
+                double offset = 0.0;
+
+                if (!r.readArray("shape", tue::config::OPTIONAL))
                 {
-                    res.error_msg = "Entity '" + e->id().str() + "': area '" + req.area_names[i] + "' does not have 'shape' property.";
+                    // If no shape specified, get the convex hull of the object
+                    for (pcl::PointCloud<pcl::PointXYZ>::const_iterator it = e->convexHull().chull.begin(); it != e->convexHull().chull.end(); ++it)
+                        chull.push_back(geo::Vector3(it->x, it->y, 0.0));
+
+                    // Default to 0.7 if not specified
+                    if (!r.value("offset", offset, tue::config::OPTIONAL))
+                        offset = 0.7;
                 }
                 else
                 {
-                    std::vector<geo::Vector3> chull;
                     while(r.nextArrayItem())
                     {
                         if (r.readGroup("box"))
@@ -169,13 +183,13 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
 
                     // Transform to map frame
                     transformChull(e->pose(), chull);
-
-                    // add to constraint here
-                    if (i > 0)
-                        constraint << " and ";
-
-                    constructConstraint(chull, constraint);
                 }
+
+                // add to constraint here
+                if (i > 0)
+                    constraint << " and ";
+
+                constructConstraint(chull, constraint, offset);
             }
         }
 
