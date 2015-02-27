@@ -5,6 +5,41 @@
 
 // ----------------------------------------------------------------------------------------------------
 
+void transformChull(const geo::Pose3D& pose, std::vector<geo::Vector3>& chull)
+{
+    for (unsigned int i = 0; i < chull.size(); ++i)
+        chull[i] = pose * chull[i];
+}
+
+// --
+
+void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& constraint)
+{
+    if (chull.size() < 3)
+    {
+        std::cout << "Error: Convex hull has to consist of at least three points !!" << std::endl;
+        return;
+    }
+
+    chull.push_back(chull[0]);
+
+    double dx,dy,xi,yi;
+    for (unsigned int i = 0; i < chull.size()-1; ++i)
+    {
+        if (i > 0)
+            constraint << " and ";
+
+        xi = chull[i].x;
+        yi = chull[i].y;
+        dx = chull[i+1].x - xi;
+        dy = chull[i+1].y - yi;
+
+        constraint << "-(x-" << xi << ")*" << dy << "+(y-" << yi << ")*" << dx << "> 0";
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------
+
 void NavigationPlugin::configure(tue::Configuration config)
 {
     ros::NodeHandle nh("~/navigation");
@@ -59,7 +94,6 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         return true;
     }
 
-    bool first = true;
     std::stringstream constraint;
 
     for (unsigned int i = 0; i < req.entity_ids.size(); ++i)
@@ -99,6 +133,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
                 }
                 else
                 {
+                    std::vector<geo::Vector3> chull;
                     while(r.nextArrayItem())
                     {
                         if (r.readGroup("box"))
@@ -121,25 +156,25 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
                                 r.endGroup();
                             }
 
-                            // Transform points to map frame
-                            min = e->pose() * min;
-                            max = e->pose() * max;
-
-                            if (!first)
-                                constraint << " and ";
-
-                            constraint << "x > " << min.x << " and "
-                                       << "x < " << max.x << " and "
-                                       << "y > " << min.y << " and "
-                                       << "y < " << max.y;
-
-                            first = false;
+                            chull.push_back(min);
+                            chull.push_back(geo::Vector3(max.x, min.y, 0));
+                            chull.push_back(max);
+                            chull.push_back(geo::Vector3(min.x, max.y, 0));
 
                             r.endGroup();
                         }
                     }
 
                     r.endArray();
+
+                    // Transform to map frame
+                    transformChull(e->pose(), chull);
+
+                    // add to constraint here
+                    if (i > 0)
+                        constraint << " and ";
+
+                    constructConstraint(chull, constraint);
                 }
             }
         }
