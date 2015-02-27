@@ -2,4 +2,5 @@ string entity_id
 string area_name
 ---
 string position_constraint
+string frame_id
 string error_msg
