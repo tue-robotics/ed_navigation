@@ -53,86 +53,105 @@ void NavigationPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& r
 
 bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstraint::Request& req, ed_navigation::GetGoalConstraint::Response& res)
 {
-    ed::EntityConstPtr e = world_->getEntity(req.entity_id);
-
-    if (!e)
+    if (req.entity_ids.size() != req.area_names.size())
     {
-        res.error_msg = "No such entity: '" + req.entity_id + "'.";
+        res.error_msg = "Entity ids and area names are not from equal length";
         return true;
     }
 
-    const tue::config::DataConstPointer& data = e->data();
-    if (data.empty())
-    {
-        res.error_msg = "Entity '" + e->id().str() + "': does not have an 'areas' property.";
-        return true;
-    }
+    bool first = true;
+    std::stringstream constraint;
 
-    tue::config::Reader r(data);
-    if (!r.readArray("areas"))
+    for (unsigned int i = 0; i < req.entity_ids.size(); ++i)
     {
-        res.error_msg = "Entity '" + e->id().str() + "': does not have an 'areas' property.";
-        return true;
-    }
+        ed::EntityConstPtr e = world_->getEntity(req.entity_ids[i]);
 
-    while(r.nextArrayItem())
-    {
-        std::string name;
-        if (r.value("name", name) && name == req.area_name)
+        if (!e)
         {
-            if (!r.readArray("shape", tue::config::REQUIRED))
-            {
-                res.error_msg = "Entity '" + e->id().str() + "': area '" + req.area_name + "' does not have 'shape' property.";
-                return true;
-            }
+            res.error_msg = "No such entity: '" + req.entity_ids[i] + "'.";
+            continue;
+        }
 
-            // Construct position constraint from shape
-            std::string& pc = res.position_constraint;
+        const tue::config::DataConstPointer& data = e->data();
+        if (data.empty())
+        {
+            res.error_msg = "Entity '" + e->id().str() + "': does not have an 'areas' property.";
+            continue;
+        }
 
-            while(r.nextArrayItem())
+        tue::config::Reader r(data);
+        if (!r.readArray("areas"))
+        {
+            res.error_msg = "Entity '" + e->id().str() + "': does not have an 'areas' property.";
+            continue;
+        }
+
+        bool found_area = false;
+        while(r.nextArrayItem())
+        {
+            std::string name;
+            if (r.value("name", name) && name == req.area_names[i])
             {
-                if (r.readGroup("box"))
+                found_area = true;
+                if (!r.readArray("shape", tue::config::REQUIRED))
                 {
-                    geo::Vector3 min, max;
-
-                    if (r.readGroup("min"))
+                    res.error_msg = "Entity '" + e->id().str() + "': area '" + req.area_names[i] + "' does not have 'shape' property.";
+                }
+                else
+                {
+                    while(r.nextArrayItem())
                     {
-                        r.value("x", min.x);
-                        r.value("y", min.y);
-                        r.value("z", min.z);
-                        r.endGroup();
+                        if (r.readGroup("box"))
+                        {
+                            geo::Vector3 min, max;
+
+                            if (r.readGroup("min"))
+                            {
+                                r.value("x", min.x);
+                                r.value("y", min.y);
+                                r.value("z", min.z);
+                                r.endGroup();
+                            }
+
+                            if (r.readGroup("max"))
+                            {
+                                r.value("x", max.x);
+                                r.value("y", max.y);
+                                r.value("z", max.z);
+                                r.endGroup();
+                            }
+
+                            // Transform points to map frame
+                            min = e->pose() * min;
+                            max = e->pose() * max;
+
+                            if (!first)
+                                constraint << " and ";
+
+                            constraint << "x > " << min.x << " and "
+                                       << "x < " << max.x << " and "
+                                       << "y > " << min.y << " and "
+                                       << "y < " << max.y;
+
+                            first = false;
+
+                            r.endGroup();
+                        }
                     }
 
-                    if (r.readGroup("max"))
-                    {
-                        r.value("x", max.x);
-                        r.value("y", max.y);
-                        r.value("z", max.z);
-                        r.endGroup();
-                    }
-
-                    std::stringstream constraint;
-                    constraint << "x > " << min.x << " and "
-                               << "x < " << max.x << " and "
-                               << "y > " << min.y << " and "
-                               << "y < " << max.y;
-
-                    res.position_constraint = constraint.str();
-                    res.frame_id = e->id().str();
-
-                    r.endGroup();
+                    r.endArray();
                 }
             }
-
-            r.endArray();
-
-            return true;
         }
+
+        if (!found_area)
+            res.error_msg = "Entity '" + e->id().str() + "': area '" + req.area_names[i] + "' does not exist";
+
+        r.endArray();
     }
 
-    r.endArray();
+    res.position_constraint_map_frame = constraint.str();
 
-    res.error_msg = "Entity '" + e->id().str() + "': area '" + req.area_name + "' does not exist";
     return true;
 }
 

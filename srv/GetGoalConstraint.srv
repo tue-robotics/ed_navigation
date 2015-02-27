@@ -1,6 +1,5 @@
-string entity_id
-string area_name
+string[] entity_ids
+string[] area_names
 ---
-string position_constraint
-string frame_id
+string position_constraint_map_frame
 string error_msg
