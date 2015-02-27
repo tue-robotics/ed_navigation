@@ -1,0 +1,5 @@
+string entity_id
+string area_name
+---
+string position_constraint
+string error_msg
