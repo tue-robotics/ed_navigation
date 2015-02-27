@@ -117,7 +117,7 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map
             geo::Vector3 p3w = e->pose() * it->p3_;
 
             // Filter the ground
-            if (p1w.getZ() > 0.05001 && p2w.getZ() > 0.050001 && p3w.getZ() > 0.05001) {
+            if (p1w.getZ() > 0.05001 && p2w.getZ() > 0.050001 && p3w.getZ() > 0.05001 && p1w.getZ() < 2 && p2w.getZ() < 2 && p3w.getZ() < 2) {
 
                 cv::Point2i p1, p2, p3;
 
