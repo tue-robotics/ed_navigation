@@ -15,10 +15,13 @@
 // ----------------------------------------------------------------------------------------------------
 
 
-void OccupancyGridPublisher::configure(ros::NodeHandle& nh, const double& res, const std::string& frame_id)
+void OccupancyGridPublisher::configure(ros::NodeHandle& nh, const double& res, const double& min_z, const double& max_z, const std::string& frame_id)
 {
     res_ = res;
     frame_id_ = frame_id;
+
+    min_z_ = min_z;
+    max_z_ = max_z;
 
     map_pub_ = nh.advertise<nav_msgs::OccupancyGrid>("map", 0, false);
 
@@ -45,6 +48,8 @@ void OccupancyGridPublisher::publish(const ed::WorldModel& world)
         std::cout << "width: " << width_ << std::endl;
         std::cout << "height: " << height_ << std::endl;
         std::cout << "resolution: " << res_ << std::endl;
+        std::cout << "min_z: " << min_z_ << std::endl;
+        std::cout << "max_z: " << max_z_ << std::endl;
     }
 }
 
@@ -72,13 +77,28 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
                 geo::Vector3 p1w = e->pose() * (*it);
 
                 // Filter the ground
-                if (p1w.getZ() > 0.05001)
+                if (p1w.getZ() > min_z_)
                 {
                     min.x = std::min(p1w.x, min.x);
                     max.x = std::max(p1w.x, max.x);
 
                     min.y = std::min(p1w.y, min.y);
                     max.y = std::max(p1w.y, max.y);
+                }
+            }
+        }
+        else
+        {
+            const pcl::PointCloud<pcl::PointXYZ>& chull_points = e->convexHull().chull;
+            for(pcl::PointCloud<pcl::PointXYZ>::const_iterator it = chull_points.begin(); it != chull_points.end(); ++it) {
+                // Filter the ground
+                if (it->z > min_z_)
+                {
+                    min.x = std::min((float)it->x, (float)min.x);
+                    max.x = std::max((float)it->x, (float)max.x);
+
+                    min.y = std::min((float)it->y, (float)min.y);
+                    max.y = std::max((float)it->y, (float)max.y);
                 }
             }
         }
@@ -116,18 +136,19 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map
             geo::Vector3 p2w = e->pose() * it->p2_;
             geo::Vector3 p3w = e->pose() * it->p3_;
 
-            // Filter the ground
-            if (p1w.getZ() > 0.05001 && p2w.getZ() > 0.050001 && p3w.getZ() > 0.05001) {
+            // Filter if all points are above or all points are below
+            if ( (p1w.getZ() < min_z_ && p2w.getZ() < min_z_ && p3w.getZ() < min_z_) || (p1w.getZ() > max_z_ && p2w.getZ() > max_z_ && p3w.getZ() > max_z_) )
+                continue;
 
-                cv::Point2i p1, p2, p3;
+            cv::Point2i p1, p2, p3;
 
-                // Check if all points are on the map
-                if ( worldToMap(p1w.x, p1w.y, p1.x, p1.y) && worldToMap(p2w.x, p2w.y, p2.x, p2.y) && worldToMap(p3w.x, p3w.y, p3.x, p3.y) ) {
-                    cv::line(map, p1, p2, value);
-                    cv::line(map, p1, p3, value);
-                    cv::line(map, p2, p3, value);
-                }
+            // Check if all points are on the map
+            if ( worldToMap(p1w.x, p1w.y, p1.x, p1.y) && worldToMap(p2w.x, p2w.y, p2.x, p2.y) && worldToMap(p3w.x, p3w.y, p3.x, p3.y) ) {
+                cv::line(map, p1, p2, value);
+                cv::line(map, p1, p3, value);
+                cv::line(map, p2, p3, value);
             }
+
         }
     }
     else // Do convex hull

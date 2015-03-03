@@ -1,6 +1,8 @@
 #include "ed_navigation/navigation_plugin.h"
 
 #include <ed/entity.h>
+#include <ed/error_context.h>
+
 #include <tue/config/reader.h>
 
 // ----------------------------------------------------------------------------------------------------
@@ -60,11 +62,14 @@ void NavigationPlugin::configure(tue::Configuration config)
     // Configure the occupancy grid publisher
     if (config.readGroup("occupancy_grid_publisher"))
     {
-        double res;
+        double res, min_z, max_z;
         std::string frame_id;
         config.value("frame_id", frame_id);
         config.value("resolution", res);
-        occupancy_grid_publisher_.configure(nh, res, frame_id);
+
+        config.value("min_z", min_z);
+        config.value("max_z", max_z);
+        occupancy_grid_publisher_.configure(nh, res, min_z, max_z, frame_id);
 
         config.endGroup();
     }

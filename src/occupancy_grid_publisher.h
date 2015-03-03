@@ -15,7 +15,7 @@ public:
 
     OccupancyGridPublisher() : width_(0), height_(0), res_(0), configured_(false) {}
 
-    void configure(ros::NodeHandle& nh, const double &res, const std::string &frame_id);
+    void configure(ros::NodeHandle& nh, const double &res, const double& min_z, const double& max_z, const std::string &frame_id);
 
     void publish(const ed::WorldModel& world);
 
@@ -59,7 +59,7 @@ private:
     int width_, height_;
     std::string frame_id_;
 
-    double res_;
+    double res_, min_z_, max_z_;
 };
 
 #endif
