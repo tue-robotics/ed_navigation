@@ -153,25 +153,26 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map
     }
     else // Do convex hull
     {
-        const pcl::PointCloud<pcl::PointXYZ>& chull_points = e->convexHull().chull;
-
-        for (unsigned int i = 0; i < chull_points.size(); ++i)
+        if (e->convexHull().max_z > min_z_ && e->convexHull().min_z < max_z_)
         {
+            const pcl::PointCloud<pcl::PointXYZ>& chull_points = e->convexHull().chull;
 
-            geo::Vector3 p1w(chull_points.points[i].x, chull_points.points[i].y, 0);
-            geo::Vector3 p2w;
-            if (i == chull_points.size() - 1)
-                p2w = geo::Vector3(chull_points.points[0].x, chull_points.points[0].y, 0);
-            else
-                p2w = geo::Vector3(chull_points.points[i+1].x, chull_points.points[i+1].y, 0);
+            for (unsigned int i = 0; i < chull_points.size(); ++i)
+            {
 
-            if ( (p1w.getZ() < min_z_ && p2w.getZ() < min_z_) || (p1w.getZ() > max_z_ && p2w.getZ() > max_z_) )
-                continue;
+                geo::Vector3 p1w(chull_points.points[i].x, chull_points.points[i].y, 0);
+                geo::Vector3 p2w;
+                if (i == chull_points.size() - 1)
+                    p2w = geo::Vector3(chull_points.points[0].x, chull_points.points[0].y, 0);
+                else
+                    p2w = geo::Vector3(chull_points.points[i+1].x, chull_points.points[i+1].y, 0);
 
-            // Check if all points are on the map
-            cv::Point2i p1, p2;
-            if ( worldToMap(p1w.x, p1w.y, p1.x, p1.y) && worldToMap(p2w.x, p2w.y, p2.x, p2.y) )
-                cv::line(map, p1, p2, value);
+
+                // Check if all points are on the map
+                cv::Point2i p1, p2;
+                if ( worldToMap(p1w.x, p1w.y, p1.x, p1.y) && worldToMap(p2w.x, p2w.y, p2.x, p2.y) )
+                    cv::line(map, p1, p2, value);
+            }
         }
     }
 }
