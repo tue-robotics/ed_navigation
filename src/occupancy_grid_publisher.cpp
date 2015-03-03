@@ -165,6 +165,9 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map
             else
                 p2w = geo::Vector3(chull_points.points[i+1].x, chull_points.points[i+1].y, 0);
 
+            if ( (p1w.getZ() < min_z_ && p2w.getZ() < min_z_) || (p1w.getZ() > max_z_ && p2w.getZ() > max_z_) )
+                continue;
+
             // Check if all points are on the map
             cv::Point2i p1, p2;
             if ( worldToMap(p1w.x, p1w.y, p1.x, p1.y) && worldToMap(p2w.x, p2w.y, p2.x, p2.y) )

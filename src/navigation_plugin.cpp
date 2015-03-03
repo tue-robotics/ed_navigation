@@ -69,6 +69,7 @@ void NavigationPlugin::configure(tue::Configuration config)
 
         config.value("min_z", min_z);
         config.value("max_z", max_z);
+        std::cout << "Using min max " << min_z << ", " << max_z << std::endl;
         occupancy_grid_publisher_.configure(nh, res, min_z, max_z, frame_id);
 
         config.endGroup();
