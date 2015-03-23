@@ -64,6 +64,9 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
     {
         const ed::EntityConstPtr& e = *it;
 
+        if (!e->has_pose())
+            continue;
+
         //! Push back the entity
         entities_to_be_projected.push_back(e);
 

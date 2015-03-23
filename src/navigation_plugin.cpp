@@ -118,6 +118,12 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             continue;
         }
 
+        if (!e->has_pose())
+        {
+            res.error_msg = "Entity '" + req.entity_ids[i] + "' has no pose.";
+            continue;
+        }
+
         const tue::config::DataConstPointer& data = e->data();
         if (data.empty())
         {
