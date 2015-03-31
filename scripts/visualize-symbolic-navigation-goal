@@ -1,0 +1,43 @@
+#!/usr/bin/python
+
+"""Visualize Symbolic Navigation Goal
+
+Usage:
+  visualize-symbolic-navigation-goal [<entity_id> <area_name>]...
+
+Examples:
+  visualize-symbolic-navigation-goal plastic_cabinet in_front_of
+  visualize-symbolic-navigation-goal plastic_cabinet in_front_of living_room in
+"""
+
+import rospy
+import sys
+from ed_navigation.srv import GetGoalConstraint
+from cb_planner_msgs_srvs.srv import GetPlan
+from cb_planner_msgs_srvs.msg import PositionConstraint
+from docopt import docopt
+
+if __name__ == '__main__':
+    rospy.init_node("visualize_symbolic_navigation_goal")
+
+    sys.argv = [ v for v in sys.argv if v[0] != "_" ]
+
+    arguments = docopt(__doc__)
+    print "Visualizing the following symbolic constraints: \n"
+    print arguments
+    print ""
+
+    try:
+        constraint_srv = rospy.ServiceProxy('ed/navigation/get_constraint', GetGoalConstraint)
+        resp = constraint_srv(entity_ids=[c for c in arguments["<entity_id>"]], area_names=[a for a in arguments["<area_name>"]])
+        print "Constraint in map frame: \n"
+        print resp.position_constraint_map_frame
+        print ""
+        try:
+            plan_srv = rospy.ServiceProxy('global_planner/get_plan_srv', GetPlan)
+            plan_srv(goal_position_constraints=[PositionConstraint(frame="/map", constraint=resp.position_constraint_map_frame)])
+            print "** Published Visualization Marker **"
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+    except rospy.ServiceException, e:
+        print "Service call failed: %s"%e
