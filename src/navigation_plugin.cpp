@@ -107,10 +107,14 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
     }
 
     std::stringstream constraint;
+    bool first = true;
 
     for (unsigned int i = 0; i < req.entity_ids.size(); ++i)
     {
         ed::EntityConstPtr e = world_->getEntity(req.entity_ids[i]);
+
+        std::vector<geo::Vector3> chull;
+        double offset = 0.0;
 
         if (!e)
         {
@@ -125,90 +129,96 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         }
 
         const tue::config::DataConstPointer& data = e->data();
-        if (data.empty())
-        {
-            res.error_msg = "Entity '" + e->id().str() + "': does not have an 'areas' property.";
-            continue;
-        }
-
         tue::config::Reader r(data);
-        if (!r.readArray("areas"))
+        if (!data.empty() && r.readArray("areas"))
         {
-            res.error_msg = "Entity '" + e->id().str() + "': does not have an 'areas' property.";
-            continue;
-        }
-
-        bool found_area = false;
-        while(r.nextArrayItem())
-        {
-            std::string name;
-            if (r.value("name", name) && name == req.area_names[i])
+            bool found_area = false;
+            while(r.nextArrayItem())
             {
-                found_area = true;
-                std::vector<geo::Vector3> chull;
-                double offset = 0.0;
-
-                if (!r.readArray("shape", tue::config::OPTIONAL))
+                std::string name;
+                if (r.value("name", name) && name == req.area_names[i])
                 {
-                    // If no shape specified, get the convex hull of the object
-                    for (pcl::PointCloud<pcl::PointXYZ>::const_iterator it = e->convexHull().chull.begin(); it != e->convexHull().chull.end(); ++it)
-                        chull.push_back(geo::Vector3(it->x, it->y, 0.0));
+                    found_area = true;
 
-                    // Default to 0.7 if not specified
-                    if (!r.value("offset", offset, tue::config::OPTIONAL))
-                        offset = 0.7;
-                }
-                else
-                {
-                    while(r.nextArrayItem())
+                    if (!r.readArray("shape", tue::config::OPTIONAL))
                     {
-                        if (r.readGroup("box"))
-                        {
-                            geo::Vector3 min, max;
+                        // If no shape specified, get the convex hull of the object
+                        for (pcl::PointCloud<pcl::PointXYZ>::const_iterator it = e->convexHull().chull.begin(); it != e->convexHull().chull.end(); ++it)
+                            chull.push_back(geo::Vector3(it->x, it->y, 0.0));
 
-                            if (r.readGroup("min"))
-                            {
-                                r.value("x", min.x);
-                                r.value("y", min.y);
-                                r.value("z", min.z);
-                                r.endGroup();
-                            }
-
-                            if (r.readGroup("max"))
-                            {
-                                r.value("x", max.x);
-                                r.value("y", max.y);
-                                r.value("z", max.z);
-                                r.endGroup();
-                            }
-
-                            chull.push_back(min);
-                            chull.push_back(geo::Vector3(max.x, min.y, 0));
-                            chull.push_back(max);
-                            chull.push_back(geo::Vector3(min.x, max.y, 0));
-
-                            r.endGroup();
-                        }
+                        // Default to 0.7 if not specified
+                        if (!r.value("offset", offset, tue::config::OPTIONAL))
+                            offset = 0.7;
                     }
+                    else
+                    {
+                        while(r.nextArrayItem())
+                        {
+                            if (r.readGroup("box"))
+                            {
+                                geo::Vector3 min, max;
 
-                    r.endArray();
+                                if (r.readGroup("min"))
+                                {
+                                    r.value("x", min.x);
+                                    r.value("y", min.y);
+                                    r.value("z", min.z);
+                                    r.endGroup();
+                                }
 
-                    // Transform to map frame
-                    transformChull(e->pose(), chull);
+                                if (r.readGroup("max"))
+                                {
+                                    r.value("x", max.x);
+                                    r.value("y", max.y);
+                                    r.value("z", max.z);
+                                    r.endGroup();
+                                }
+
+                                chull.push_back(min);
+                                chull.push_back(geo::Vector3(max.x, min.y, 0));
+                                chull.push_back(max);
+                                chull.push_back(geo::Vector3(min.x, max.y, 0));
+
+                                r.endGroup();
+                            }
+                        }
+
+                        r.endArray();
+
+                        // Transform to map frame
+                        transformChull(e->pose(), chull);
+                    }
                 }
+            }
 
-                // add to constraint here
-                if (i > 0)
-                    constraint << " and ";
+            if (!found_area)
+                res.error_msg = "Entity '" + e->id().str() + "': area '" + req.area_names[i] + "' does not exist";
 
-                constructConstraint(chull, constraint, offset);
+            r.endArray();
+        }
+        else
+        {
+            // Check whether the request is 'near' --> do the convex hull with 0.7 default
+            if (req.area_names[i] == "near")
+            {
+                for (pcl::PointCloud<pcl::PointXYZ>::const_iterator it = e->convexHull().chull.begin(); it != e->convexHull().chull.end(); ++it)
+                    chull.push_back(geo::Vector3(it->x, it->y, 0.0));
+                offset = 0.7;
+            }
+            else
+            {
+                res.error_msg = "Entity '" + e->id().str() + "': does not have an 'areas' property and the area name is not 'near'; it it '" + req.area_names[i] + "'.";
+                continue;
             }
         }
 
-        if (!found_area)
-            res.error_msg = "Entity '" + e->id().str() + "': area '" + req.area_names[i] + "' does not exist";
+        // add to constraint here
+        if (!first)
+            constraint << " and ";
 
-        r.endArray();
+        constructConstraint(chull, constraint, offset);
+
+        first = false;
     }
 
     res.position_constraint_map_frame = constraint.str();
