@@ -110,6 +110,9 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
     }
 
     std::stringstream constraint;
+    constraint.precision(3); // To make sure we don't get e powers in the string
+    constraint << std::fixed;
+    
     bool first = true;
 
     for (unsigned int i = 0; i < req.entity_ids.size(); ++i)
