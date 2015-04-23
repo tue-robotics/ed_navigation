@@ -69,6 +69,9 @@ void NavigationPlugin::configure(tue::Configuration config)
 
         config.value("min_z", min_z);
         config.value("max_z", max_z);
+        
+        config.value("default_offset", default_offset_);
+        
         std::cout << "Using min max " << min_z << ", " << max_z << std::endl;
         occupancy_grid_publisher_.configure(nh, res, min_z, max_z, frame_id);
 
@@ -146,9 +149,9 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
                         for (pcl::PointCloud<pcl::PointXYZ>::const_iterator it = e->convexHull().chull.begin(); it != e->convexHull().chull.end(); ++it)
                             chull.push_back(geo::Vector3(it->x, it->y, 0.0));
 
-                        // Default to 0.7 if not specified
+                        // Default if not specified
                         if (!r.value("offset", offset, tue::config::OPTIONAL))
-                            offset = 0.7;
+                            offset = default_offset_;
                     }
                     else
                     {
@@ -198,12 +201,12 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         }
         else
         {
-            // Check whether the request is 'near' --> do the convex hull with 0.7 default
+            // Check whether the request is 'near' --> do the convex hull with default offset
             if (req.area_names[i] == "near")
             {
                 for (pcl::PointCloud<pcl::PointXYZ>::const_iterator it = e->convexHull().chull.begin(); it != e->convexHull().chull.end(); ++it)
                     chull.push_back(geo::Vector3(it->x, it->y, 0.0));
-                offset = 0.7;
+                offset = default_offset_;
             }
             else
             {

@@ -36,12 +36,15 @@ private:
     ros::CallbackQueue cb_queue_;
 
     const ed::WorldModel* world_;
-\
+
     // Occupancy grid publisher
     OccupancyGridPublisher occupancy_grid_publisher_;
 
     // Parameters
     std::string goal_constraint_service_name_;
+    
+    // Default
+    double default_offset_;
 
 };
 
