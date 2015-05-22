@@ -92,16 +92,19 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
         }
         else
         {
-            const pcl::PointCloud<pcl::PointXYZ>& chull_points = e->convexHull().chull;
-            for(pcl::PointCloud<pcl::PointXYZ>::const_iterator it = chull_points.begin(); it != chull_points.end(); ++it) {
-                // Filter the ground
-                if (it->z > min_z_)
+            if (e->convexHull().z_max + e->pose().t.z > min_z_)  // Filter the ground
+            {
+                const std::vector<geo::Vec2f>& chull_points = e->convexHull().points;
+                for(std::vector<geo::Vec2f>::const_iterator it = chull_points.begin(); it != chull_points.end(); ++it)
                 {
-                    min.x = std::min((float)it->x, (float)min.x);
-                    max.x = std::max((float)it->x, (float)max.x);
+                    float x = it->x + e->pose().t.x;
+                    float y = it->y + e->pose().t.y;
 
-                    min.y = std::min((float)it->y, (float)min.y);
-                    max.y = std::max((float)it->y, (float)max.y);
+                    min.x = std::min(x, (float)min.x);
+                    max.x = std::max(x, (float)max.x);
+
+                    min.y = std::min(y, (float)min.y);
+                    max.y = std::max(y, (float)max.y);
                 }
             }
         }
@@ -156,20 +159,16 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map
     }
     else // Do convex hull
     {
-        if (e->convexHull().max_z > min_z_ && e->convexHull().min_z < max_z_)
+        if (e->convexHull().z_max + e->pose().t.z > min_z_ && e->convexHull().z_min + e->pose().t.z < max_z_)
         {
-            const pcl::PointCloud<pcl::PointXYZ>& chull_points = e->convexHull().chull;
+            const std::vector<geo::Vec2f>& chull_points = e->convexHull().points;
 
             for (unsigned int i = 0; i < chull_points.size(); ++i)
             {
+                int j = (i + 1) % chull_points.size();
 
-                geo::Vector3 p1w(chull_points.points[i].x, chull_points.points[i].y, 0);
-                geo::Vector3 p2w;
-                if (i == chull_points.size() - 1)
-                    p2w = geo::Vector3(chull_points.points[0].x, chull_points.points[0].y, 0);
-                else
-                    p2w = geo::Vector3(chull_points.points[i+1].x, chull_points.points[i+1].y, 0);
-
+                geo::Vector3 p1w(chull_points[i].x + e->pose().t.x, chull_points[i].y + e->pose().t.y, 0);
+                geo::Vector3 p2w(chull_points[j].x + e->pose().t.x, chull_points[j].y + e->pose().t.y, 0);
 
                 // Check if all points are on the map
                 cv::Point2i p1, p2;

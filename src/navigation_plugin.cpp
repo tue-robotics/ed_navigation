@@ -119,7 +119,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
     {
         ed::EntityConstPtr e = world_->getEntity(req.entity_ids[i]);
 
-        std::vector<geo::Vector3> chull;
+        std::vector<geo::Vector3> chull; // In MAP frame
         double offset = 0.0;
 
         if (!e)
@@ -149,8 +149,8 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
                     if (!r.readArray("shape", tue::config::OPTIONAL))
                     {
                         // If no shape specified, get the convex hull of the object
-                        for (pcl::PointCloud<pcl::PointXYZ>::const_iterator it = e->convexHull().chull.begin(); it != e->convexHull().chull.end(); ++it)
-                            chull.push_back(geo::Vector3(it->x, it->y, 0.0));
+                        for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
+                            chull.push_back(geo::Vector3(it->x + e->pose().t.x, it->y + e->pose().t.y, 0.0));
 
                         // Default if not specified
                         if (!r.value("offset", offset, tue::config::OPTIONAL))
@@ -207,8 +207,8 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             // Check whether the request is 'near' --> do the convex hull with default offset
             if (req.area_names[i] == "near")
             {
-                for (pcl::PointCloud<pcl::PointXYZ>::const_iterator it = e->convexHull().chull.begin(); it != e->convexHull().chull.end(); ++it)
-                    chull.push_back(geo::Vector3(it->x, it->y, 0.0));
+                for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
+                    chull.push_back(geo::Vector3(it->x + e->pose().t.x, it->y + e->pose().t.y, 0.0));
                 offset = default_offset_;
             }
             else
