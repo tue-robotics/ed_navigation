@@ -15,7 +15,8 @@ public:
 
     OccupancyGridPublisher() : width_(0), height_(0), res_(0), configured_(false) {}
 
-    void configure(ros::NodeHandle& nh, const double &res, const double& min_z, const double& max_z, const std::string &frame_id);
+    void configure(ros::NodeHandle& nh, const double &res, const double& min_z, const double& max_z,
+                   const std::string &frame_id, double unknown_obstacle_inflation);
 
     void publish(const ed::WorldModel& world);
 
@@ -60,6 +61,9 @@ private:
     std::string frame_id_;
 
     double res_, min_z_, max_z_;
+
+    // Inflation of unknown obstacles (in meters)
+    double unknown_obstacle_inflation_;
 };
 
 #endif

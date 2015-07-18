@@ -14,8 +14,8 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-
-void OccupancyGridPublisher::configure(ros::NodeHandle& nh, const double& res, const double& min_z, const double& max_z, const std::string& frame_id)
+void OccupancyGridPublisher::configure(ros::NodeHandle& nh, const double& res, const double& min_z, const double& max_z,
+                                       const std::string& frame_id, double unknown_obstacle_inflation)
 {
     res_ = res;
     frame_id_ = frame_id;
@@ -24,6 +24,8 @@ void OccupancyGridPublisher::configure(ros::NodeHandle& nh, const double& res, c
     max_z_ = max_z;
 
     map_pub_ = nh.advertise<nav_msgs::OccupancyGrid>("map", 0, false);
+
+    unknown_obstacle_inflation_ = unknown_obstacle_inflation;
 
     configured_ = true;
 }
@@ -94,17 +96,18 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
         {
             if (e->convexHull().z_max + e->pose().t.z > min_z_)  // Filter the ground
             {
+
                 const std::vector<geo::Vec2f>& chull_points = e->convexHull().points;
                 for(std::vector<geo::Vec2f>::const_iterator it = chull_points.begin(); it != chull_points.end(); ++it)
                 {
                     float x = it->x + e->pose().t.x;
                     float y = it->y + e->pose().t.y;
 
-                    min.x = std::min(x, (float)min.x);
-                    max.x = std::max(x, (float)max.x);
+                    min.x = std::min<double>(x - unknown_obstacle_inflation_, min.x);
+                    max.x = std::max<double>(x + unknown_obstacle_inflation_, max.x);
 
-                    min.y = std::min(y, (float)min.y);
-                    max.y = std::max(y, (float)max.y);
+                    min.y = std::min<double>(y - unknown_obstacle_inflation_, min.y);
+                    max.y = std::max<double>(y + unknown_obstacle_inflation_, max.y);
                 }
             }
         }
@@ -173,7 +176,7 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map
                 // Check if all points are on the map
                 cv::Point2i p1, p2;
                 if ( worldToMap(p1w.x, p1w.y, p1.x, p1.y) && worldToMap(p2w.x, p2w.y, p2.x, p2.y) )
-                    cv::line(map, p1, p2, value);
+                    cv::line(map, p1, p2, value, unknown_obstacle_inflation_ / res_ + 1);
             }
         }
     }
