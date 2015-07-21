@@ -46,12 +46,12 @@ void OccupancyGridPublisher::publish(const ed::WorldModel& world)
     }
     else
     {
-        std::cout << "Error getting map data:" << std::endl;
-        std::cout << "width: " << width_ << std::endl;
-        std::cout << "height: " << height_ << std::endl;
-        std::cout << "resolution: " << res_ << std::endl;
-        std::cout << "min_z: " << min_z_ << std::endl;
-        std::cout << "max_z: " << max_z_ << std::endl;
+//        std::cout << "Error getting map data:" << std::endl;
+//        std::cout << "width: " << width_ << std::endl;
+//        std::cout << "height: " << height_ << std::endl;
+//        std::cout << "resolution: " << res_ << std::endl;
+//        std::cout << "min_z: " << min_z_ << std::endl;
+//        std::cout << "max_z: " << max_z_ << std::endl;
     }
 }
 
