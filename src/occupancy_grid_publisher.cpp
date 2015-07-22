@@ -17,6 +17,8 @@
 void OccupancyGridPublisher::configure(ros::NodeHandle& nh, const double& res, const double& min_z, const double& max_z,
                                        const std::string& frame_id, double unknown_obstacle_inflation)
 {
+    convex_hull_enabled_ = false;
+
     res_ = res;
     frame_id_ = frame_id;
 
@@ -92,7 +94,7 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
                 }
             }
         }
-        else
+        else if (convex_hull_enabled_)
         {
             if (e->convexHull().z_max + e->pose().t.z > min_z_)  // Filter the ground
             {
@@ -160,7 +162,7 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map
 
         }
     }
-    else // Do convex hull
+    else if (convex_hull_enabled_) // Do convex hull
     {
         if (e->convexHull().z_max + e->pose().t.z > min_z_ && e->convexHull().z_min + e->pose().t.z < max_z_)
         {

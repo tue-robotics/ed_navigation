@@ -64,6 +64,8 @@ private:
 
     // Inflation of unknown obstacles (in meters)
     double unknown_obstacle_inflation_;
+
+    bool convex_hull_enabled_;
 };
 
 #endif
