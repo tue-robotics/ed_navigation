@@ -76,7 +76,7 @@ void NavigationPlugin::configure(tue::Configuration config)
             unknown_obstacle_inflation = 0;
         
         std::cout << "Using min max " << min_z << ", " << max_z << std::endl;
-        occupancy_grid_publisher_.configure(nh, res, min_z, max_z, frame_id, unknown_obstacle_inflation);
+        occupancy_grid_publisher_.configure(nh, config, res, min_z, max_z, frame_id, unknown_obstacle_inflation);
 
         config.endGroup();
     }

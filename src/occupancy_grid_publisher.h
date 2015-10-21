@@ -6,16 +6,17 @@
 #include <ed/plugin.h>
 #include <ed/types.h>
 
-#include <opencv2/opencv.hpp>
+#include "map.h"
+#include "depth_sensor_integrator.h"
 
 class OccupancyGridPublisher
 {
 
 public:
 
-    OccupancyGridPublisher() : width_(0), height_(0), res_(0), configured_(false) {}
+    OccupancyGridPublisher() : configured_(false) {}
 
-    void configure(ros::NodeHandle& nh, const double &res, const double& min_z, const double& max_z,
+    void configure(ros::NodeHandle& nh, tue::Configuration config, const double &res, const double& min_z, const double& max_z,
                    const std::string &frame_id, double unknown_obstacle_inflation);
 
     void publish(const ed::WorldModel& world);
@@ -26,29 +27,9 @@ private:
 
     bool getMapData(const ed::WorldModel& world, std::vector<ed::EntityConstPtr>& entities_to_be_projected);
 
-    void updateMap(const ed::EntityConstPtr& e, cv::Mat& map);
+    void updateMap(const ed::EntityConstPtr& e, Map& map);
 
-    void publishMapMsg (const cv::Mat& map);
-
-    bool worldToMap (double wx, double wy, int& mx, int& my) const
-    {
-        if (wx < origin_.x || wy < origin_.y)
-            return false;
-
-        mx = (wx - origin_.x) / res_ ;
-        my = (wy - origin_.y) / res_ ;
-
-        if (mx < width_ && my < height_)
-            return true;
-
-        return false;
-    }
-
-    void mapToWorld (unsigned int mx, unsigned int my, double& wx, double& wy) const
-    {
-        wx = origin_.x + (mx + 0.5) * res_;
-        wy = origin_.y + (my + 0.5) * res_;
-    }
+    void publishMapMsg (const Map& map);
 
     ros::Publisher map_pub_;
 
@@ -56,16 +37,22 @@ private:
 
     bool configured_;
 
-    geo::Vector3 origin_;
-    int width_, height_;
     std::string frame_id_;
 
-    double res_, min_z_, max_z_;
+    double min_z_, max_z_;
 
     // Inflation of unknown obstacles (in meters)
     double unknown_obstacle_inflation_;
 
     bool convex_hull_enabled_;
+
+    // Map
+    Map map_;
+
+    Map depth_sensor_map_;
+
+    // Depth sensor integration
+    DepthSensorIntegrator depth_sensor_integrator_;
 };
 
 #endif

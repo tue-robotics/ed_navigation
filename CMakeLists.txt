@@ -3,6 +3,7 @@ project(ed_navigation)
 
 find_package(catkin REQUIRED COMPONENTS
     ed
+    ed_sensor_integration
     message_generation
 )
 
@@ -39,7 +40,9 @@ include_directories(
 )
 
 add_library(ed_navigation_plugin
-     src/navigation_plugin.cpp
-     src/occupancy_grid_publisher.cpp
+    src/map.cpp
+    src/navigation_plugin.cpp
+    src/occupancy_grid_publisher.cpp
+    src/depth_sensor_integrator.cpp
 )
 target_link_libraries(ed_navigation_plugin ${catkin_LIBRARIES})

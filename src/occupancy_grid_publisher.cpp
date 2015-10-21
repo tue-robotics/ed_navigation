@@ -14,12 +14,13 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-void OccupancyGridPublisher::configure(ros::NodeHandle& nh, const double& res, const double& min_z, const double& max_z,
+void OccupancyGridPublisher::configure(ros::NodeHandle& nh, tue::Configuration config, const double& res, const double& min_z, const double& max_z,
                                        const std::string& frame_id, double unknown_obstacle_inflation)
 {
     convex_hull_enabled_ = true;
 
-    res_ = res;
+    map_.setResolution(res);
+
     frame_id_ = frame_id;
 
     min_z_ = min_z;
@@ -28,6 +29,12 @@ void OccupancyGridPublisher::configure(ros::NodeHandle& nh, const double& res, c
     map_pub_ = nh.advertise<nav_msgs::OccupancyGrid>("map", 0, false);
 
     unknown_obstacle_inflation_ = unknown_obstacle_inflation;
+
+    if (config.readGroup("depth_sensor_integration"))
+    {
+        depth_sensor_integrator_.initialize(config, frame_id_);
+        config.endGroup();
+    }
 
     configured_ = true;
 }
@@ -39,12 +46,12 @@ void OccupancyGridPublisher::publish(const ed::WorldModel& world)
     std::vector<ed::EntityConstPtr> entities_to_be_projected;
     if (getMapData(world, entities_to_be_projected))
     {
-        cv::Mat map = cv::Mat::zeros(height_, width_, CV_8U);
-
         for(std::vector<ed::EntityConstPtr>::const_iterator it = entities_to_be_projected.begin(); it != entities_to_be_projected.end(); ++it)
-            updateMap(*it, map);
+            updateMap(*it, map_);
 
-        publishMapMsg(map);
+        depth_sensor_integrator_.updateMap(map_);
+
+        publishMapMsg(map_);
     }
     else
     {
@@ -123,16 +130,15 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
     max.y+=1.0;
 
     //! Set the origin, width and height
-    origin_ = min;
-    width_ = (max.x - min.x) / res_;
-    height_ = (max.y - min.y) / res_;
+    map_.setOrigin(min);
+    map_.setSizeAndClear((max.x - min.x) / map_.resolution(), (max.y - min.y) / map_.resolution());
 
-    return (width_ > 0 && height_ > 0 && width_*height_ < 100000000);
+    return (map_.width_in_cells() > 0 && map_.height_in_cells() > 0 && map_.width_in_cells() * map_.height_in_cells() < 100000000);
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map)
+void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, Map& map)
 {
     int value = 100;
 
@@ -154,10 +160,10 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map
             cv::Point2i p1, p2, p3;
 
             // Check if all points are on the map
-            if ( worldToMap(p1w.x, p1w.y, p1.x, p1.y) && worldToMap(p2w.x, p2w.y, p2.x, p2.y) && worldToMap(p3w.x, p3w.y, p3.x, p3.y) ) {
-                cv::line(map, p1, p2, value);
-                cv::line(map, p1, p3, value);
-                cv::line(map, p2, p3, value);
+            if (map.worldToMap(p1w.x, p1w.y, p1.x, p1.y) && map.worldToMap(p2w.x, p2w.y, p2.x, p2.y) && map.worldToMap(p3w.x, p3w.y, p3.x, p3.y) ) {
+                cv::line(map.image, p1, p2, value);
+                cv::line(map.image, p1, p3, value);
+                cv::line(map.image, p2, p3, value);
             }
 
         }
@@ -177,8 +183,8 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map
 
                 // Check if all points are on the map
                 cv::Point2i p1, p2;
-                if ( worldToMap(p1w.x, p1w.y, p1.x, p1.y) && worldToMap(p2w.x, p2w.y, p2.x, p2.y) )
-                    cv::line(map, p1, p2, value, unknown_obstacle_inflation_ / res_ + 1);
+                if (map.worldToMap(p1w.x, p1w.y, p1.x, p1.y) && map.worldToMap(p2w.x, p2w.y, p2.x, p2.y) )
+                    cv::line(map.image, p1, p2, value, unknown_obstacle_inflation_ / map.resolution() + 1);
             }
         }
     }
@@ -186,22 +192,23 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, cv::Mat& map
 
 // ----------------------------------------------------------------------------------------------------
 
-void OccupancyGridPublisher::publishMapMsg(const cv::Mat& map)
+void OccupancyGridPublisher::publishMapMsg(const Map& map)
 {
     nav_msgs::OccupancyGrid map_msg;
-    geo::convert(origin_, map_msg.info.origin.position);
+    geo::convert(map.origin(), map_msg.info.origin.position);
 
-    map_msg.info.resolution = res_;
-    map_msg.info.width = width_;
-    map_msg.info.height = height_;
+    map_msg.info.resolution = map.resolution();
+    map_msg.info.width = map.width_in_cells();
+    map_msg.info.height = map.height_in_cells();
 
-    map_msg.data.resize(width_ * height_);
+    map_msg.data.resize(map.width_in_cells() * map.height_in_cells());
+
     unsigned int i = 0;
-    for(int my = 0; my < height_; ++my)
+    for(int my = 0; my < map.height_in_cells(); ++my)
     {
-        for(int mx = 0; mx < width_; ++mx)
+        for(int mx = 0; mx < map.width_in_cells(); ++mx)
         {
-            unsigned char c = map.at<unsigned char>(my, mx);
+            unsigned char c = map.image.at<unsigned char>(my, mx);
             if (c > 0)
                 map_msg.data[i] = c;
             else
@@ -215,5 +222,4 @@ void OccupancyGridPublisher::publishMapMsg(const cv::Mat& map)
     map_pub_.publish(map_msg);
 }
 
-
-
+// ----------------------------------------------------------------------------------------------------
