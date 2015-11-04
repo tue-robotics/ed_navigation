@@ -75,7 +75,7 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
     {
         const ed::EntityConstPtr& e = *it;
 
-        if (!e->has_pose() || e->existenceProbability() < 0.95)
+        if (!e->has_pose() || e->existenceProbability() < 0.95 || e->hasFlag("self"))
             continue;
 
         //! Push back the entity
