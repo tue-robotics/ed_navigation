@@ -2,47 +2,38 @@ cmake_minimum_required(VERSION 2.8.3)
 project(ed_navigation)
 
 find_package(catkin REQUIRED COMPONENTS
-    ed
-    ed_sensor_integration
-    message_generation
+  cb_planner_msgs_srvs
+  ed
+  ed_sensor_integration
+  message_generation
+  nav_msgs
+  rgbd
 )
 
-# ------------------------------------------------------------------------------------------------
-#                                     ROS MESSAGES AND SERVICES
-# ------------------------------------------------------------------------------------------------
-
-# Generate services
 add_service_files(
-    FILES
+  FILES
     GetGoalConstraint.srv
 )
 
-# Generate added messages and services with any dependencies listed here
 generate_messages(
-    DEPENDENCIES
-    std_msgs
+  DEPENDENCIES
 )
-
-# ------------------------------------------------------------------------------------------------
-#                                          CATKIN EXPORT
-# ------------------------------------------------------------------------------------------------
 
 catkin_package(
+  CATKIN_DEPENDS
+    cb_planner_msgs_srvs ed message_runtime nav_msgs rgbd
 )
 
-# ------------------------------------------------------------------------------------------------
-#                                              BUILD
-# ------------------------------------------------------------------------------------------------
-
 include_directories(
-    include
-    ${catkin_INCLUDE_DIRS}
+  include
+  ${catkin_INCLUDE_DIRS}
 )
 
 add_library(ed_navigation_plugin
-    src/map.cpp
-    src/navigation_plugin.cpp
-    src/occupancy_grid_publisher.cpp
-    src/depth_sensor_integrator.cpp
+  src/depth_sensor_integrator.cpp
+  src/map.cpp
+  src/navigation_plugin.cpp
+  src/occupancy_grid_publisher.cpp
 )
 target_link_libraries(ed_navigation_plugin ${catkin_LIBRARIES})
+add_dependencies(ed_navigation_plugin ${catkin_EXPORTED_TARGETS})
