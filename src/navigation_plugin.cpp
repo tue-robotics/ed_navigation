@@ -69,12 +69,12 @@ void NavigationPlugin::configure(tue::Configuration config)
 
         config.value("min_z", min_z);
         config.value("max_z", max_z);
-        
+
         config.value("default_offset", default_offset_);
 
         if (!config.value("unknown_obstacle_inflation", unknown_obstacle_inflation, tue::OPTIONAL))
             unknown_obstacle_inflation = 0;
-        
+
         std::cout << "Using min max " << min_z << ", " << max_z << std::endl;
         occupancy_grid_publisher_.configure(nh, config, res, min_z, max_z, frame_id, unknown_obstacle_inflation);
 
@@ -113,9 +113,9 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
     }
 
     std::stringstream constraint;
-    constraint.precision(3); // To make sure we don't get e powers in the string
+    constraint.precision(6); // To make sure we don't get e powers in the string
     constraint << std::fixed;
-    
+
     bool first = true;
 
     for (unsigned int i = 0; i < req.entity_ids.size(); ++i)
