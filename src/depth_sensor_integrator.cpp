@@ -49,6 +49,8 @@ void DepthSensorIntegrator::initialize(tue::Configuration config, const std::str
     config.value("num_samples", num_samples_);
     config.value("slope_threshold", slope_threshold_);
     config.value("slope_window_size", slope_window_size_);
+    config.value("min_distance", min_distance_);
+    config.value("max_distance", max_distance_);
 
     std::cout << rgbd_topic << std::endl;
 
@@ -183,7 +185,7 @@ bool DepthSensorIntegrator::updateMap(Map& map)
             }
         }
 
-        if (p_floor_closest.y < 10)
+        if (p_floor_closest.y < max_distance_ && p_floor_closest.y > min_distance_)
         {
             geo::Vec3 p_map = sensor_pose_xya * p_floor_closest;
 

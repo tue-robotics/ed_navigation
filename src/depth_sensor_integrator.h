@@ -29,6 +29,8 @@ private:
     std::string map_frame_;
 
     double slope_threshold_;
+    double min_distance_;
+    double max_distance_;
 
     int num_samples_;
 
