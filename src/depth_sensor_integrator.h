@@ -19,6 +19,8 @@ public:
 
     bool updateMap(Map& map);
 
+    bool isInitialized() const { !map_frame_.empty(); }
+
 private:
 
     ImageBuffer image_buffer_;

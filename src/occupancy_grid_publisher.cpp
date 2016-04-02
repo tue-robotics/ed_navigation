@@ -49,7 +49,8 @@ void OccupancyGridPublisher::publish(const ed::WorldModel& world)
         for(std::vector<ed::EntityConstPtr>::const_iterator it = entities_to_be_projected.begin(); it != entities_to_be_projected.end(); ++it)
             updateMap(*it, map_);
 
-        depth_sensor_integrator_.updateMap(map_);
+        if (depth_sensor_integrator_.isInitialized())
+            depth_sensor_integrator_.updateMap(map_);
 
         publishMapMsg(map_);
     }
@@ -68,6 +69,8 @@ void OccupancyGridPublisher::publish(const ed::WorldModel& world)
 
 bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector<ed::EntityConstPtr>& entities_to_be_projected)
 {
+    bool is_empty = true;
+
     geo::Vector3 min(1e6,1e6,0);
     geo::Vector3 max(-1e6,-1e6,0);
 
@@ -98,6 +101,8 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
 
                     min.y = std::min(p1w.y, min.y);
                     max.y = std::max(p1w.y, max.y);
+
+                    is_empty = false;
                 }
             }
         }
@@ -117,10 +122,15 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
 
                     min.y = std::min<double>(y - unknown_obstacle_inflation_, min.y);
                     max.y = std::max<double>(y + unknown_obstacle_inflation_, max.y);
+
+                    is_empty = false;
                 }
             }
         }
     }
+
+    if (is_empty)
+        return false;
 
     // Bounds fix
     min.x-=1.0;
@@ -131,6 +141,7 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
 
     //! Set the origin, width and height
     map_.setOrigin(min);
+
     map_.setSizeAndClear((max.x - min.x) / map_.resolution(), (max.y - min.y) / map_.resolution());
 
     return (map_.width_in_cells() > 0 && map_.height_in_cells() > 0 && map_.width_in_cells() * map_.height_in_cells() < 100000000);

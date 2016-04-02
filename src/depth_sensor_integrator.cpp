@@ -52,8 +52,6 @@ void DepthSensorIntegrator::initialize(tue::Configuration config, const std::str
     config.value("min_distance", min_distance_);
     config.value("max_distance", max_distance_);
 
-    std::cout << rgbd_topic << std::endl;
-
     map_frame_ = map_frame;
 }
 
@@ -61,6 +59,9 @@ void DepthSensorIntegrator::initialize(tue::Configuration config, const std::str
 
 bool DepthSensorIntegrator::updateMap(Map& map)
 {
+    if (!isInitialized())
+        return false;
+
     bool visualize = false;
 
     rgbd::ImageConstPtr image;
