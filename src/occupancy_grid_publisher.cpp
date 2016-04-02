@@ -106,27 +106,27 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
                 }
             }
         }
-        else if (convex_hull_enabled_)
-        {
-            if (e->convexHull().z_max + e->pose().t.z > min_z_)  // Filter the ground
-            {
+//        else if (convex_hull_enabled_)
+//        {
+//            if (e->convexHull().z_max + e->pose().t.z > min_z_)  // Filter the ground
+//            {
 
-                const std::vector<geo::Vec2f>& chull_points = e->convexHull().points;
-                for(std::vector<geo::Vec2f>::const_iterator it = chull_points.begin(); it != chull_points.end(); ++it)
-                {
-                    float x = it->x + e->pose().t.x;
-                    float y = it->y + e->pose().t.y;
+//                const std::vector<geo::Vec2f>& chull_points = e->convexHull().points;
+//                for(std::vector<geo::Vec2f>::const_iterator it = chull_points.begin(); it != chull_points.end(); ++it)
+//                {
+//                    float x = it->x + e->pose().t.x;
+//                    float y = it->y + e->pose().t.y;
 
-                    min.x = std::min<double>(x - unknown_obstacle_inflation_, min.x);
-                    max.x = std::max<double>(x + unknown_obstacle_inflation_, max.x);
+//                    min.x = std::min<double>(x - unknown_obstacle_inflation_, min.x);
+//                    max.x = std::max<double>(x + unknown_obstacle_inflation_, max.x);
 
-                    min.y = std::min<double>(y - unknown_obstacle_inflation_, min.y);
-                    max.y = std::max<double>(y + unknown_obstacle_inflation_, max.y);
+//                    min.y = std::min<double>(y - unknown_obstacle_inflation_, min.y);
+//                    max.y = std::max<double>(y + unknown_obstacle_inflation_, max.y);
 
-                    is_empty = false;
-                }
-            }
-        }
+//                    is_empty = false;
+//                }
+//            }
+//        }
     }
 
     if (is_empty)
