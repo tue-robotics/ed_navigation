@@ -19,7 +19,7 @@ public:
 
     bool updateMap(Map& map);
 
-    bool isInitialized() const { !map_frame_.empty(); }
+    bool isInitialized() const { return !map_frame_.empty(); }
 
 private:
 
