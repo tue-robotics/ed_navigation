@@ -30,12 +30,6 @@ void OccupancyGridPublisher::configure(ros::NodeHandle& nh, tue::Configuration c
 
     unknown_obstacle_inflation_ = unknown_obstacle_inflation;
 
-    if (config.readGroup("depth_sensor_integration"))
-    {
-        depth_sensor_integrator_.initialize(config, frame_id_);
-        config.endGroup();
-    }
-
     configured_ = true;
 }
 
@@ -48,9 +42,6 @@ void OccupancyGridPublisher::publish(const ed::WorldModel& world)
     {
         for(std::vector<ed::EntityConstPtr>::const_iterator it = entities_to_be_projected.begin(); it != entities_to_be_projected.end(); ++it)
             updateMap(*it, map_);
-
-        if (depth_sensor_integrator_.isInitialized())
-            depth_sensor_integrator_.updateMap(map_);
 
         publishMapMsg(map_);
     }

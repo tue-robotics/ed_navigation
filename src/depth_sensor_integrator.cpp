@@ -43,7 +43,7 @@ DepthSensorIntegrator::~DepthSensorIntegrator()
 
 // ----------------------------------------------------------------------------------------------------
 
-void DepthSensorIntegrator::initialize(tue::Configuration config, const std::string& map_frame)
+void DepthSensorIntegrator::initialize(tue::Configuration config)
 {
     std::string rgbd_topic;
     if (config.value("topic", rgbd_topic))
@@ -54,16 +54,15 @@ void DepthSensorIntegrator::initialize(tue::Configuration config, const std::str
     config.value("slope_window_size", slope_window_size_);
     config.value("min_distance", min_distance_);
     config.value("max_distance", max_distance_);
+    config.value("frame_id", map_frame_);
 
     ros::NodeHandle nh("~");
     pointcloud2_publisher_ = nh.advertise<sensor_msgs::PointCloud2>("navigation/cloud", 20);
-
-    map_frame_ = map_frame;
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-bool DepthSensorIntegrator::updateMap(Map& map)
+bool DepthSensorIntegrator::update()
 {
     if (!isInitialized())
         return false;
@@ -76,7 +75,7 @@ bool DepthSensorIntegrator::updateMap(Map& map)
     if (!image_buffer_.nextImage(map_frame_, image, sensor_pose))
         return false;
 
-        // - - - - - - - - - - - - - - - - - - - - - - -
+    // - - - - - - - - - - - - - - - - - - - - - - -
 
     geo::Pose3D sensor_pose_xya;
     geo::Pose3D sensor_pose_zrp;

@@ -80,6 +80,13 @@ void NavigationPlugin::configure(tue::Configuration config)
 
         config.endGroup();
     }
+
+
+    if (config.readGroup("depth_sensor_integration"))
+    {
+        depth_sensor_integrator_.initialize(config);
+        config.endGroup();
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -100,6 +107,10 @@ void NavigationPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& r
     // Publish the occupancy grid
     if (occupancy_grid_publisher_.configured())
         occupancy_grid_publisher_.publish(world);
+
+    // Publish the occupancy grid
+    if (depth_sensor_integrator_.isInitialized())
+        depth_sensor_integrator_.update();
 }
 
 // ----------------------------------------------------------------------------------------------------

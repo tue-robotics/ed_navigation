@@ -7,7 +7,6 @@
 #include <ed/types.h>
 
 #include "map.h"
-#include "depth_sensor_integrator.h"
 
 class OccupancyGridPublisher
 {
@@ -48,11 +47,6 @@ private:
 
     // Map
     Map map_;
-
-    Map depth_sensor_map_;
-
-    // Depth sensor integration
-    DepthSensorIntegrator depth_sensor_integrator_;
 };
 
 #endif

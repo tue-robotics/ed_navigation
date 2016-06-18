@@ -17,16 +17,15 @@ public:
 
     ~DepthSensorIntegrator();
 
-    void initialize(tue::Configuration config, const std::string& map_frame);
+    void initialize(tue::Configuration config);
 
-    bool updateMap(Map& map);
+    bool update();
 
     bool isInitialized() const { return !map_frame_.empty(); }
 
 private:
 
     ImageBuffer image_buffer_;
-
 
     // Params
 

@@ -7,6 +7,7 @@
 #include <ed_navigation/GetGoalConstraint.h>
 
 #include "../../src/occupancy_grid_publisher.h"
+#include "../../src/depth_sensor_integrator.h"
 
 #include <ros/callback_queue.h>
 
@@ -39,6 +40,9 @@ private:
 
     // Occupancy grid publisher
     OccupancyGridPublisher occupancy_grid_publisher_;
+
+    // Depth sensor integration
+    DepthSensorIntegrator depth_sensor_integrator_;
 
     // Parameters
     std::string goal_constraint_service_name_;
