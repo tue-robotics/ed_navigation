@@ -7,6 +7,8 @@ find_package(catkin REQUIRED COMPONENTS
   ed_sensor_integration
   message_generation
   nav_msgs
+  sensor_msgs
+  roscpp
   rgbd
 )
 

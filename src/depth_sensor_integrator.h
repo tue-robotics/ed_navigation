@@ -6,6 +6,8 @@
 #include <ed/kinect/image_buffer.h>
 #include <tue/config/configuration.h>
 
+#include <ros/publisher.h>
+
 class DepthSensorIntegrator
 {
 
@@ -37,6 +39,8 @@ private:
     int num_samples_;
 
     int slope_window_size_;
+
+    ros::Publisher pointcloud2_publisher_;
 
 };
 
