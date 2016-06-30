@@ -5,6 +5,8 @@
 
 #include <tue/config/reader.h>
 
+#include <iomanip>
+
 // ----------------------------------------------------------------------------------------------------
 
 void transformChull(const geo::Pose3D& pose, std::vector<geo::Vector3>& chull)
@@ -24,6 +26,9 @@ void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& co
     }
 
     chull.push_back(chull[0]);
+   
+    // To make sure we don't get e powers in the string
+    constraint << std::fixed << std::setprecision(6);
 
     constraint << "(";
 
