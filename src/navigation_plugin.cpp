@@ -15,7 +15,7 @@ void transformChull(const geo::Pose3D& pose, std::vector<geo::Vector3>& chull)
 
 // --
 
-void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& constraint, const double& offset)
+void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& constraint, double offset = 0)
 {
     if (chull.size() < 3)
     {
@@ -24,6 +24,8 @@ void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& co
     }
 
     chull.push_back(chull[0]);
+
+    constraint << "(";
 
     double dx,dy,xi,yi,xs,ys,length;
     for (unsigned int i = 0; i < chull.size()-1; ++i)
@@ -44,6 +46,88 @@ void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& co
 
         constraint << "-(x-" << xs << ")*" << dy << "+(y-" << ys << ")*" << dx << " > 0";
     }
+
+    constraint << ")";
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+// r must be currently reading an array of shapes
+std::string constructShapeConstraint(tue::config::Reader& r, const geo::Pose3D& entity_pose)
+{
+    std::stringstream shape_constraint;
+
+    bool first_sub_shape = true;
+    while(r.nextArrayItem())
+    {
+        std::stringstream sub_shape_constraint;
+
+        if (r.readGroup("box", tue::config::OPTIONAL))
+        {
+            std::vector<geo::Vector3> chull; // In MAP frame
+
+            geo::Vector3 min, max;
+
+            if (r.readGroup("min"))
+            {
+                r.value("x", min.x);
+                r.value("y", min.y);
+                r.value("z", min.z);
+                r.endGroup();
+            }
+
+            if (r.readGroup("max"))
+            {
+                r.value("x", max.x);
+                r.value("y", max.y);
+                r.value("z", max.z);
+                r.endGroup();
+            }
+
+            chull.push_back(min);
+            chull.push_back(geo::Vector3(max.x, min.y, 0));
+            chull.push_back(max);
+            chull.push_back(geo::Vector3(min.x, max.y, 0));
+
+            // Transform to map frame, and add to entity constraint
+            transformChull(entity_pose, chull);
+            constructConstraint(chull, sub_shape_constraint);
+
+            r.endGroup();
+        }
+        else if (r.readGroup("convex_polygon", tue::config::OPTIONAL))
+        {
+            std::vector<geo::Vector3> chull; // In MAP frame
+
+            if (r.readArray("points", tue::config::REQUIRED))
+            {
+                while(r.nextArrayItem())
+                {
+                    double x, y;
+                    if (r.value("x", x) && r.value("y", y))
+                        chull.push_back(geo::Vector3(x, y, 0));
+                }
+                r.endArray();
+            }
+            r.endGroup();
+
+            // Transform to map frame, and add to entity constraint
+            transformChull(entity_pose, chull);
+            constructConstraint(chull, sub_shape_constraint);
+        }
+
+        if (!sub_shape_constraint.str().empty())
+        {
+            if (first_sub_shape)
+                first_sub_shape = false;
+            else
+                shape_constraint << " or ";
+
+           shape_constraint << "(" << sub_shape_constraint.str() << ")";
+        }
+    }
+
+    return shape_constraint.str();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -133,7 +217,6 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
     {
         ed::EntityConstPtr e = world_->getEntity(req.entity_ids[i]);
 
-        std::vector<geo::Vector3> chull; // In MAP frame
         double offset = 0.0;
 
         if (!e)
@@ -148,6 +231,8 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             continue;
         }
 
+        std::stringstream entity_constraint;
+
         const tue::config::DataConstPointer& data = e->data();
         tue::config::Reader r(data);
         if (!data.empty() && r.readArray("areas"))
@@ -156,58 +241,33 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             while(r.nextArrayItem())
             {
                 std::string name;
-                if (r.value("name", name) && name == req.area_names[i])
+                if (!r.value("name", name) || name != req.area_names[i])
+                    continue;
+
+                found_area = true;
+
+                if (!r.readArray("shape", tue::config::OPTIONAL))
                 {
-                    found_area = true;
+                    std::vector<geo::Vector3> chull; // In MAP frame
 
-                    if (!r.readArray("shape", tue::config::OPTIONAL))
-                    {
-                        // If no shape specified, get the convex hull of the object
-                        for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
-                            chull.push_back(geo::Vector3(it->x + e->pose().t.x, it->y + e->pose().t.y, 0.0));
+                    // If no shape specified, get the convex hull of the object
+                    for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
+                        chull.push_back(geo::Vector3(it->x + e->pose().t.x, it->y + e->pose().t.y, 0.0));
 
-                        // Default if not specified
-                        if (!r.value("offset", offset, tue::config::OPTIONAL))
-                            offset = default_offset_;
-                    }
-                    else
-                    {
-                        while(r.nextArrayItem())
-                        {
-                            if (r.readGroup("box"))
-                            {
-                                geo::Vector3 min, max;
+                    // Default if not specified
+                    if (!r.value("offset", offset, tue::config::OPTIONAL))
+                        offset = default_offset_;
 
-                                if (r.readGroup("min"))
-                                {
-                                    r.value("x", min.x);
-                                    r.value("y", min.y);
-                                    r.value("z", min.z);
-                                    r.endGroup();
-                                }
-
-                                if (r.readGroup("max"))
-                                {
-                                    r.value("x", max.x);
-                                    r.value("y", max.y);
-                                    r.value("z", max.z);
-                                    r.endGroup();
-                                }
-
-                                chull.push_back(min);
-                                chull.push_back(geo::Vector3(max.x, min.y, 0));
-                                chull.push_back(max);
-                                chull.push_back(geo::Vector3(min.x, max.y, 0));
-
-                                r.endGroup();
-                            }
-                        }
-
-                        r.endArray();
-
-                        // Transform to map frame
-                        transformChull(e->pose(), chull);
-                    }
+                    // Transform to map frame, and add to entity constraint
+                    transformChull(e->pose(), chull);
+                    constructConstraint(chull, entity_constraint, offset);
+                }
+                else
+                {
+                    std::string shape_constraint = constructShapeConstraint(r, e->pose());
+                    if (!shape_constraint.empty())
+                        entity_constraint << "(" << shape_constraint << ")";
+                    r.endArray();
                 }
             }
 
@@ -221,9 +281,14 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             // Check whether the request is 'near' --> do the convex hull with default offset
             if (req.area_names[i] == "near")
             {
+
+                std::vector<geo::Vector3> chull; // In MAP frame
+
                 for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
                     chull.push_back(geo::Vector3(it->x + e->pose().t.x, it->y + e->pose().t.y, 0.0));
                 offset = default_offset_;
+
+                constructConstraint(chull, entity_constraint, offset);
             }
             else
             {
@@ -233,13 +298,15 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         }
 
         // add to constraint here
-        if (!first)
+        if (first)
+            first = false;
+        else
             constraint << " and ";
 
-        constructConstraint(chull, constraint, offset);
-
-        first = false;
+        constraint << "(" << entity_constraint.str() << ")";
     }
+
+
 
     res.position_constraint_map_frame = constraint.str();
 
