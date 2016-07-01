@@ -196,6 +196,8 @@ bool DepthSensorIntegrator::update()
         if (p_floor_closest.y < max_distance_ && p_floor_closest.y > min_distance_)
         {
             geo::Vec3 p_map = sensor_pose_xya * p_floor_closest;
+            if (p_map.z > 1.7)
+                continue;
 
             measurements.push_back(p_map);
 
