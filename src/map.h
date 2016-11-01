@@ -1,7 +1,8 @@
 #ifndef _MAP_H_
 #define _MAP_H_
 
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 #include <geolib/datatypes.h>
 
 class Map
