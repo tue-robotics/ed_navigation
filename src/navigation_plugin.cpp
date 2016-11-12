@@ -26,7 +26,7 @@ void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& co
     }
 
     chull.push_back(chull[0]);
-   
+
     // To make sure we don't get e powers in the string
     constraint << std::fixed << std::setprecision(6);
 
@@ -263,8 +263,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
                     if (!r.value("offset", offset, tue::config::OPTIONAL))
                         offset = default_offset_;
 
-                    // Transform to map frame, and add to entity constraint
-//                    transformChull(e->pose(), chull);
+                    //Th chull is already in map frame, no need to transform it from the local frame to the global /map frame
                     constructConstraint(chull, entity_constraint, offset);
                 }
                 else
