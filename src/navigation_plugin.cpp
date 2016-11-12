@@ -264,7 +264,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
                         offset = default_offset_;
 
                     // Transform to map frame, and add to entity constraint
-                    transformChull(e->pose(), chull);
+//                    transformChull(e->pose(), chull);
                     constructConstraint(chull, entity_constraint, offset);
                 }
                 else
