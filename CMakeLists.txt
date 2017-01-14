@@ -38,4 +38,4 @@ add_library(ed_navigation_plugin
   src/occupancy_grid_publisher.cpp
 )
 target_link_libraries(ed_navigation_plugin ${catkin_LIBRARIES})
-add_dependencies(ed_navigation_plugin ${catkin_EXPORTED_TARGETS})
+add_dependencies(ed_navigation_plugin ${${PROJECT_NAME}_EXPORTED_TARGETS})
