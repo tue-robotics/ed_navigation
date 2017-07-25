@@ -61,8 +61,8 @@ void OccupancyGridPublisher::publish(const ed::WorldModel& world)
 bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector<ed::EntityConstPtr>& entities_to_be_projected)
 {
     // default size
-    geo::Vector3 min(-10,-10,0);
-    geo::Vector3 max(10,10,0);
+    geo::Vector3 min(-20,-20,0);
+    geo::Vector3 max(20,20,0);
 
     for(ed::WorldModel::const_iterator it = world.begin(); it != world.end(); ++it)
     {
@@ -118,11 +118,11 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
     }
 
     // Bounds fix
-    min.x-=1.0;
-    min.y-=1.0;
+    min.x-=3.0;
+    min.y-=3.0;
 
-    max.x+=1.0;
-    max.y+=1.0;
+    max.x+=3.0;
+    max.y+=3.0;
 
     //! Set the origin, width and height
     map_.setOrigin(min);
