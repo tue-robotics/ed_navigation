@@ -32,10 +32,18 @@ include_directories(
 )
 
 add_library(ed_navigation_plugin
-  src/depth_sensor_integrator.cpp
-  src/map.cpp
   src/navigation_plugin.cpp
+  src/map.cpp
   src/occupancy_grid_publisher.cpp
 )
+add_library(ed_kinect_navigation_plugin
+  src/depth_sensor_integrator.cpp
+  src/map.cpp
+  src/kinect_navigation_plugin.cpp
+)
+
 target_link_libraries(ed_navigation_plugin ${catkin_LIBRARIES})
 add_dependencies(ed_navigation_plugin ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+target_link_libraries(ed_kinect_navigation_plugin ${catkin_LIBRARIES})
+add_dependencies(ed_kinect_navigation_plugin ${${PROJECT_NAME}_EXPORTED_TARGETS})
