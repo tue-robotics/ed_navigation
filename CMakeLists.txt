@@ -37,9 +37,9 @@ add_library(ed_navigation_plugin
   src/occupancy_grid_publisher.cpp
 )
 add_library(ed_kinect_navigation_plugin
-  src/depth_sensor_integrator.cpp
-  src/map.cpp
   src/kinect_navigation_plugin.cpp
+  src/map.cpp
+  src/depth_sensor_integrator.cpp
 )
 
 target_link_libraries(ed_navigation_plugin ${catkin_LIBRARIES})
