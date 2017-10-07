@@ -8,40 +8,39 @@
 
 #include <ros/publisher.h>
 
-//!
-//! \brief The DepthSensorIntegrator class
-//! \details A depth image is converted to a pointcloud based on the normal. This is used for detection of obstacles
-//!
+/**
+ * @brief A depth image is converted to a pointcloud based on the normal. This is used for detection of obstacles
+ */
 class DepthSensorIntegrator
 {
 
 public:
-    //!
-    //! \brief constructor
-    //!
+    /**
+     * @brief constructor
+     */
     DepthSensorIntegrator();
 
-    //!
-    //! \brief destructor
-    //!
+    /**
+     * @brief destructor
+     */
     ~DepthSensorIntegrator();
 
-    //!
-    //! \brief initialize
-    //! \param config tue::Configuration
-    //!
+    /**
+     * @brief initialize
+     * @param config tue::Configuration
+     */
     void initialize(tue::Configuration config);
 
-    //!
-    //! \brief New depth image is converted pointcloud
-    //! \return If update is executed correctly
-    //!
+    /**
+     * @brief New depth image is converted pointcloud
+     * @return If update is executed correctly
+     */
     bool update();
 
-    //!
-    //! \brief isInitialized
-    //! \return If the instance is initialized
-    //!
+    /**
+     * @brief isInitialized
+     * @return If the instance is initialized
+     */
     bool isInitialized() const { return !map_frame_.empty(); }
 
 private:
