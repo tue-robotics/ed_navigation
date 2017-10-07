@@ -6,50 +6,61 @@
 
 #include "../../src/depth_sensor_integrator.h"
 
-//!
-//! \brief The KinectNavigationPlugin class
-//! \details ED plugin of the DepthSensorIntergration, which is used to detect obstacles
-//!
+/**
+ * @brief The KinectNavigationPlugin class
+ * ED plugin for de depth_sensor_integrator. Which uses the depth image to detect objects
+ */
 class KinectNavigationPlugin : public ed::Plugin
 {
 
 public:
 
-    //!
-    //! \brief constructor
-    //!
+    /**
+     * @brief constructor
+     */
     KinectNavigationPlugin() {}
 
-    //!
-    //! \brief destructor
-    //!
+    /**
+     * @brief destructor
+     */
     virtual ~KinectNavigationPlugin() {}
 
-    //!
-    //! \brief configure
-    //! \param config tue::Configuration
-    //!
+    /**
+     * @brief configure
+     * @param config
+     * @
+     * lib: libed_kinect_navigation_plugin.so
+     * parameters:
+     *  depth_sensor_integration:
+     *      frame_id: /map
+     *      topic: /amigo/top_kinect/rgbd
+     *      num_samples: 640
+     *      slope_threshold: 1
+     *      slope_window_size: 30
+     *      min_distance: 0.4
+     *      max_distance: 2.0
+     */
     void configure(tue::Configuration config);
 
-    //!
-    //! \brief initialize
-    //!
+    /**
+     * @brief initialize
+     */
     void initialize();
 
-    //!
-    //! \brief process
-    //! \param world ed::WorldModel&
-    //! \param req ed::UpdateRequest&
-    //!
+    /**
+     * @brief process
+     * @param world
+     * @param req
+     */
     void process(const ed::WorldModel& world, ed::UpdateRequest& req);
 
     // --------------------
 
 private:
 
-    //!
-    //! \brief depth_sensor_integrator_
-    //!
+    /**
+     * @brief depth_sensor_integrator_
+     */
     DepthSensorIntegrator depth_sensor_integrator_;
 
 };
