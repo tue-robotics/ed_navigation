@@ -29,9 +29,8 @@ public:
      * @brief configure
      * @param config
      * @
-     * lib: libed_kinect_navigation_plugin.so
+     * parametergroup: depth_sensor_integration
      * parameters:
-     *  depth_sensor_integration:
      *      frame_id: /map
      *      topic: /amigo/top_kinect/rgbd
      *      num_samples: 640
