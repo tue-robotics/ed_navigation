@@ -8,7 +8,8 @@
 
 /**
  * @brief The KinectNavigationPlugin class
- * ED plugin for de depth_sensor_integrator. Which uses the depth image to detect objects
+ * ED plugin for de depth_sensor_integrator. Which uses the depth image to detect objects.
+ * Based on the computed normals, points are computed that are probably measured due to an unmodeled object. These are published as a PointCloud.
  */
 class KinectNavigationPlugin : public ed::Plugin
 {
@@ -28,7 +29,6 @@ public:
     /**
      * @brief configure
      * @param config
-     * @
      * parametergroup: depth_sensor_integration
      * parameters:
      *      frame_id: /map

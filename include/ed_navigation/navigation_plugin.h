@@ -10,25 +10,61 @@
 
 #include <ros/callback_queue.h>
 
+/**
+ * @brief The NavigationPlugin class
+ * ED plugin for publishing a map for navigation
+ * The objects, walls and furniture, in the current world model, which are inbetween specified heights, are down-projected. The result is published as a occupancy grid
+ */
 class NavigationPlugin : public ed::Plugin
 {
 
 public:
 
+    /**
+     * @brief constructor
+     */
     NavigationPlugin() {}
 
+    /**
+     * @brief destructor
+     */
     virtual ~NavigationPlugin() {}
 
+    /**
+     * @brief configure
+     * @param config
+     * parametergroup: occupancy_grid_publisher
+     * parameters:
+     *      resolution: double, resolution of the occupancy grid (meters)
+     *      frame_id: id of the frame, probaly '/map'
+     *      min_z: double, only use the volume of object higher than min_z (meters)
+     *      max_z: double, only use the volume of object lower than max_z (meters)
+     *      default_offset: ???
+     */
     void configure(tue::Configuration config);
 
+    /**
+     * @brief initialize
+     */
     void initialize();
 
+    /**
+     * @brief process
+     * @param world
+     * @param req
+     */
     void process(const ed::WorldModel& world, ed::UpdateRequest& req);
 
     // --------------------
 
 private:
 
+    /**
+     * @brief Get goal constraint for navigation to objects in ED by a ros service call
+     * @param req   ed_navigation::GetGoalConstraint::Request&
+     * @param res   ed_navigation::GetGoalConstraint::Response&
+     * @return bool
+     */
     bool srvGetGoalConstraint(const ed_navigation::GetGoalConstraint::Request& req, ed_navigation::GetGoalConstraint::Response& res);
 
     // Services
