@@ -4,6 +4,11 @@
 #include <ed/plugin.h>
 #include <ed/world_model.h>
 
+#include <ros/subscriber.h>
+#include <ros/callback_queue.h>
+
+#include <cb_planner_msgs_srvs/LocalPlannerActionFeedback.h>
+
 #include "../../src/depth_sensor_integrator.h"
 
 /**
@@ -29,6 +34,11 @@ public:
     /**
      * @brief configure
      * @param config
+     * parametergroup: trigger
+     * paramaters:
+     *      local_planner_feedback_topic: /amigo/local_planner/action_server/feedback
+     *      trigger_duration: continue for x seconds after last trigger (default 1.0)
+     *      backup_frequency: minimal frequency, when not triggered (default 1.0)
      * parametergroup: depth_sensor_integration
      * parameters:
      *      frame_id: /map
@@ -43,8 +53,11 @@ public:
 
     /**
      * @brief initialize
+     * @param init
+     * parameter:
+     *
      */
-    void initialize();
+    void initialize(ed::InitData& init);
 
     /**
      * @brief process
@@ -62,6 +75,30 @@ private:
      */
     DepthSensorIntegrator depth_sensor_integrator_;
 
+    /**
+     * @brief cb_queue_
+     */
+    ros::CallbackQueue cb_queue_;
+
+    /**
+     * @brief local_planner_subs_
+     */
+    ros::Subscriber local_planner_subs_;
+
+    /**
+     * @brief local_plannerCallback
+     * @param msg
+     */
+    void local_plannerCallback(const cb_planner_msgs_srvs::LocalPlannerActionFeedbackConstPtr& msg);
+
+    bool run_triggered_ = false;
+    bool triggered_ = false;
+
+    ros::Time last_trigger_time_;
+    ros::Time last_update_time_;
+
+    float backup_frequency_ = 1.0;
+    float trigger_duration_ = 1.0;
 };
 
 #endif
