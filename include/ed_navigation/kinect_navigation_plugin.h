@@ -15,7 +15,7 @@
  * @brief The KinectNavigationPlugin class
  * ED plugin for de depth_sensor_integrator. Which uses the depth image to detect objects.
  * Based on the computed normals, points are computed that are probably measured due to an unmodeled object. These are published as a PointCloud.
- * THe plugin can be run in triggered mode. This way the pointcloud is only computed when the local_planner is active or at a backup.
+ * The plugin can be run in triggered mode. This way the pointcloud is only computed when the local_planner is active or at a backup.
  * To choose this mode the parameters should contains the trigger group. Otherwise all incoming images are computed
  */
 class KinectNavigationPlugin : public ed::Plugin
