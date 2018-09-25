@@ -8,15 +8,26 @@
 #include <iomanip>
 
 // ----------------------------------------------------------------------------------------------------
-
+/**
+ * @brief transformChull transform all points in chull with pose
+ * @param pose pose to be applied to the points in chull
+ * @param chull points to be transformed
+ */
 void transformChull(const geo::Pose3D& pose, std::vector<geo::Vector3>& chull)
 {
     for (unsigned int i = 0; i < chull.size(); ++i)
         chull[i] = pose * chull[i];
 }
 
-// --
+// ----------------------------------------------------------------------------------------------------
 
+/**
+ * @brief constructConstraint
+ * @param chull Vector with the points of the area. These points should be in the correct order. This means that the points should represent the border of the area.
+ * Becuase consecutive point pairs are used to create the contstraint. First point is added to the end, so also the pair 'first-last' is used.
+ * @param constraint string with the contraint
+ * @param offset offset to the constraint
+ */
 void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& constraint, double offset = 0)
 {
     if (chull.size() < 3)
@@ -57,7 +68,13 @@ void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& co
 
 // ----------------------------------------------------------------------------------------------------
 
-// r must be currently reading an array of shapes
+//
+/**
+ * @brief constructShapeConstraint
+ * @param r r must be currently reading an array of shapes
+ * @param entity_pose pose of the entity
+ * @return constraint string
+ */
 std::string constructShapeConstraint(tue::config::Reader& r, const geo::Pose3D& entity_pose)
 {
     std::stringstream shape_constraint;
@@ -100,7 +117,7 @@ std::string constructShapeConstraint(tue::config::Reader& r, const geo::Pose3D& 
 
             r.endGroup();
         }
-        else if (r.readGroup("convex_polygon", tue::config::OPTIONAL))
+        else if (r.readGroup("polygon", tue::config::OPTIONAL))
         {
             std::vector<geo::Vector3> chull; // In MAP frame
 
@@ -193,6 +210,12 @@ void NavigationPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& r
 
 // ----------------------------------------------------------------------------------------------------
 
+/**
+ * @brief NavigationPlugin::srvGetGoalConstraint Create a constraint to navigate to a specific area.
+ * @param req service request
+ * @param res service result
+ * @return bool
+ */
 bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstraint::Request& req, ed_navigation::GetGoalConstraint::Response& res)
 {
     if (req.entity_ids.size() != req.area_names.size())
