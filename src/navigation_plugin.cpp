@@ -178,7 +178,7 @@ void NavigationPlugin::configure(tue::Configuration config)
 
         config.value("default_offset", default_offset_);
 
-        if (!config.value("unknown_obstacle_inflation", unknown_obstacle_inflation, tue::OPTIONAL))
+        if (!config.value("unknown_obstacle_inflation", unknown_obstacle_inflation, tue::config::OPTIONAL))
             unknown_obstacle_inflation = 0;
 
         std::cout << "Using min max " << min_z << ", " << max_z << std::endl;
