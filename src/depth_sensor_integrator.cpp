@@ -1,7 +1,5 @@
 #include "depth_sensor_integrator.h"
 
-#include "timer.h"
-
 #include <rgbd/Image.h>
 #include <rgbd/View.h>
 
@@ -86,8 +84,6 @@ bool DepthSensorIntegrator::update()
     // - - - - - - - - - - - - - - - - - - - - - - -
 
     std::vector<geo::Vector3> measurements;
-
-    Timer timer;
 
     cv::Mat depth = image->getDepthImage();
 
@@ -254,9 +250,6 @@ bool DepthSensorIntegrator::update()
     }
 
     pointcloud2_publisher_.publish(pointcloud2_msg);
-
-    timer.stop();
-//    std::cout << "DepthSensorIntegrator: " << timer.getElapsedTimeInMilliSec() << " ms" << std::endl;
 
     if (visualize)
     {
