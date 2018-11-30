@@ -16,8 +16,9 @@
 
 /**
  * @brief constructConstraint
- * @param ConvexHull with the points of the area. These points should be in the correct order. This means that the points should represent the border of the area.
- * Becuase consecutive point pairs are used to create the contstraint. First point is added to the end, so also the pair 'first-last' is used.
+ * @param ConvexHull with the points of the area. These points should be in the correct order. This means that the
+ * points should represent the border of the area. Becuase consecutive point pairs are used to create the contstraint.
+ * First point is added to the end, so also the pair 'first-last' is used.
  * @param constraint string with the contraint
  * @param offset offset to the constraint
  */
@@ -65,7 +66,7 @@ void constructConstraint(ed::ConvexHull& chull, std::stringstream& constraint, d
 //
 /**
  * @brief constructShapeConstraint
- * @param r r must be currently reading an array of shapes
+ * @param shape shape of the area in entity frame
  * @param entity_pose pose of the entity
  * @return constraint string
  */
