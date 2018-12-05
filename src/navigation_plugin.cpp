@@ -22,7 +22,7 @@
  * @param constraint string with the contraint
  * @param offset offset to the constraint
  */
-void constructConstraint(ed::ConvexHull& chull, std::stringstream& constraint, double offset = 0)
+void constructConstraint(ed::ConvexHull& chull, std::stringstream& constraint, const double offset = 0)
 {
     if (chull.points.size() < 3)
     {
@@ -70,7 +70,7 @@ void constructConstraint(ed::ConvexHull& chull, std::stringstream& constraint, d
  * @param entity_pose pose of the entity
  * @return constraint string
  */
-std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3D& entity_pose)
+std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3D& entity_pose, const double offset = 0.)
 {
     std::stringstream shape_constraint;
 
@@ -102,7 +102,7 @@ std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3
     ed::convex_hull::createAbsolute(points_2d, z_min, z_max, chull);
 
     std::stringstream sub_shape_constraint;
-    constructConstraint(chull, sub_shape_constraint);
+    constructConstraint(chull, sub_shape_constraint, offset);
 
     if (!sub_shape_constraint.str().empty())
     {
@@ -142,9 +142,11 @@ void NavigationPlugin::configure(tue::Configuration config)
         config.value("max_z", max_z);
 
         config.value("default_offset", default_offset_);
+        if(!config.value("room_offset", room_offset_, tue::config::OPTIONAL))
+            room_offset_ = 0.;
 
         if (!config.value("unknown_obstacle_inflation", unknown_obstacle_inflation, tue::config::OPTIONAL))
-            unknown_obstacle_inflation = 0;
+            unknown_obstacle_inflation = 0.;
 
         std::cout << "Using min max " << min_z << ", " << max_z << std::endl;
         occupancy_grid_publisher_.configure(nh, config, res, min_z, max_z, frame_id, unknown_obstacle_inflation);
@@ -215,8 +217,8 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
 
         std::stringstream entity_constraint;
         bool area_found = false;
-
-        if(req.area_names[i] == "near")
+        std::string area_name = req.area_names[i];
+        if(area_name == "near")
         {
             area_found = true;
             std::vector<geo::Vec2f> points;
@@ -231,13 +233,13 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         }
         else
         {
-
             std::map<std::string, geo::ShapeConstPtr> areas = e->areas();
-
-            for (std::map<std::string, geo::ShapeConstPtr>::iterator it = areas.find(req.area_names[i]); it != areas.end(); ++it)
+            for (std::map<std::string, geo::ShapeConstPtr>::iterator it = areas.find(area_name); it != areas.end(); ++it)
             {
                 area_found = true;
-                std::string shape_constraint = constructShapeConstraint(it->second, e->pose());
+                if (area_name == "in")
+                    offset = room_offset_;
+                std::string shape_constraint = constructShapeConstraint(it->second, e->pose(), offset);
                 entity_constraint << "(" << shape_constraint << ")";
             }
         }
