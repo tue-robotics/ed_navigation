@@ -232,7 +232,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         else
         {
 
-            std::map<std::string, geo::ShapeConstPtr> areas = e->areas();
+            std::map<std::string, geo::ShapeConstPtr> areas = e->volumes();
 
             for (std::map<std::string, geo::ShapeConstPtr>::iterator it = areas.find(req.area_names[i]); it != areas.end(); ++it)
             {
