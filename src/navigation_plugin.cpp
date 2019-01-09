@@ -9,6 +9,7 @@
 
 #include <geolib/datatypes.h>
 #include <geolib/Shape.h>
+#include <geolib/CompositeShape.h>
 
 #include <iomanip>
 
@@ -16,8 +17,8 @@
 
 /**
  * @brief constructConstraint
- * @param ConvexHull with the points of the area. These points should be in the correct order. This means that the
- * points should represent the border of the area. Becuase consecutive point pairs are used to create the contstraint.
+ * @param ConvexHull with the points of the volume. These points should be in the correct order. This means that the
+ * points should represent the border of the volume. Becuase consecutive point pairs are used to create the contstraint.
  * First point is added to the end, so also the pair 'first-last' is used.
  * @param constraint string with the contraint
  * @param offset offset to the constraint
@@ -63,10 +64,11 @@ void constructConstraint(ed::ConvexHull& chull, std::stringstream& constraint, d
 
 // ----------------------------------------------------------------------------------------------------
 
+
 //
 /**
  * @brief constructShapeConstraint
- * @param shape shape of the area in entity frame
+ * @param shape shape of the volume in entity frame
  * @param entity_pose pose of the entity
  * @return constraint string
  */
@@ -74,9 +76,8 @@ std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3
 {
     std::stringstream shape_constraint;
 
-    bool first_sub_shape = true;
     geo::Shape shape_tr;
-    shape_tr.setMesh(shape->getMesh().getTransformed(entity_pose));
+    shape_tr.setMesh(shape->getMesh().getTransformed(entity_pose)); // get shape in map frame.
     std::vector<geo::Vector3> points = shape_tr.getMesh().getPoints();
 
     // Calculate cluster convex hull
@@ -84,34 +85,53 @@ std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3
     float z_max = -1e9;
 
     // Calculate z_min and z_max of cluster
-    std::vector<geo::Vec2f> points_2d(points.size());
-    for(int j = 0; j < points.size(); ++j)
+    std::vector<geo::Vec2f> points_2d;
+    for(std::vector<geo::Vector3>::const_iterator it = points.begin(); it != points.end(); ++it)
     {
-        const geo::Vec3& p = points[j];
+        points_2d.push_back(geo::Vec2f(it->x, it->y));
 
-        // Transform sensor point to map frame
-        geo::Vector3 p_map = entity_pose * p;
-
-        points_2d[j] = geo::Vec2f(p_map.x, p_map.y);
-
-        z_min = std::min<float>(z_min, p_map.z);
-        z_max = std::max<float>(z_max, p_map.z);
+        z_min = std::min<float>(z_min, it->z);
+        z_max = std::max<float>(z_max, it->z);
     }
 
     ed::ConvexHull chull;
     ed::convex_hull::createAbsolute(points_2d, z_min, z_max, chull);
 
-    std::stringstream sub_shape_constraint;
-    constructConstraint(chull, sub_shape_constraint);
+    constructConstraint(chull, shape_constraint);
+    return shape_constraint.str();
+}
 
-    if (!sub_shape_constraint.str().empty())
+// ----------------------------------------------------------------------------------------------------
+
+//
+/**
+ * @brief constructCompositeShapeConstraint
+ * @param composite CompositeShape of the volume in entity frame
+ * @param entity_pose pose of the entity
+ * @return constraint string
+ */
+std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& composite, const geo::Pose3D& entity_pose)
+{
+    std::stringstream shape_constraint;
+
+    bool first_sub_shape = true;
+
+    std::vector<std::pair<geo::ShapePtr, geo::Transform> > sub_shapes = composite->getShapes();
+
+    for (std::vector<std::pair<geo::ShapePtr, geo::Transform> >::const_iterator it = sub_shapes.begin();
+         it != sub_shapes.end(); ++it)
     {
-        if (first_sub_shape)
-            first_sub_shape = false;
-        else
-            shape_constraint << " or ";
+        geo::ShapeConstPtr ShapeC = boost::const_pointer_cast<geo::Shape>(it->first);
+        std::string sub_shape_constraint = constructShapeConstraint(ShapeC, entity_pose * it->second.inverse());
+        if (!sub_shape_constraint.empty())
+        {
+            if (first_sub_shape)
+                first_sub_shape = false;
+            else
+                shape_constraint << " or ";
 
-       shape_constraint << "(" << sub_shape_constraint.str() << ")";
+           shape_constraint << "(" << sub_shape_constraint << ")";
+        }
     }
 
     return shape_constraint.str();
@@ -176,7 +196,7 @@ void NavigationPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& r
 // ----------------------------------------------------------------------------------------------------
 
 /**
- * @brief NavigationPlugin::srvGetGoalConstraint Create a constraint to navigate to a specific area.
+ * @brief NavigationPlugin::srvGetGoalConstraint Create a constraint to navigate to a specific volume.
  * @param req service request
  * @param res service result
  * @return bool
@@ -185,7 +205,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
 {
     if (req.entity_ids.size() != req.area_names.size())
     {
-        res.error_msg = "Entity ids and area names are not from equal length";
+        res.error_msg = "Entity ids and volume names are not from equal length";
         return true;
     }
 
@@ -214,11 +234,11 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         }
 
         std::stringstream entity_constraint;
-        bool area_found = false;
+        bool volume_found = false;
 
         if(req.area_names[i] == "near")
         {
-            area_found = true;
+            volume_found = true;
             std::vector<geo::Vec2f> points;
 
             for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
@@ -231,19 +251,25 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         }
         else
         {
+            std::map<std::string, geo::ShapeConstPtr> volumes = e->volumes();
 
-            std::map<std::string, geo::ShapeConstPtr> areas = e->volumes();
-
-            for (std::map<std::string, geo::ShapeConstPtr>::iterator it = areas.find(req.area_names[i]); it != areas.end(); ++it)
+            std::map<std::string, geo::ShapeConstPtr>::iterator it = volumes.find(req.area_names[i]);
+            if (it != volumes.end())
             {
-                area_found = true;
-                std::string shape_constraint = constructShapeConstraint(it->second, e->pose());
+                volume_found = true;
+                std::string shape_constraint;
+                geo::CompositeShapeConstPtr composite = boost::dynamic_pointer_cast<const geo::CompositeShape>(it->second);
+                if (composite)
+                    shape_constraint = constructCompositeShapeConstraint(composite, e->pose());
+                else
+                    shape_constraint = constructShapeConstraint(it->second, e->pose());
+
                 entity_constraint << "(" << shape_constraint << ")";
             }
         }
 
-        if (!area_found)
-            res.error_msg = "Entity '" + e->id().str() + "': area '" + req.area_names[i] + "' does not exist";
+        if (!volume_found)
+            res.error_msg = "Entity '" + e->id().str() + "': volume '" + req.area_names[i] + "' does not exist";
 
         // add to constraint here
         if (first)
