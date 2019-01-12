@@ -238,6 +238,11 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
 
         if(req.area_names[i] == "near")
         {
+            if (!e->shape())
+            {
+                res.error_msg = "Navigating to area 'near' of entity '" + req.entity_ids[i] + "' isn't possible, because it doesn't have a shape.";
+                continue;
+            }
             volume_found = true;
             std::vector<geo::Vec2f> points;
 
