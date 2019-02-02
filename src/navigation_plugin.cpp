@@ -44,9 +44,8 @@ void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constra
         xi = chull.points[i].x;
         yi = chull.points[i].y;
 
-        dx = ((i + 1 < chull.points.size()) ? chull[i+1].points.x : chull.points[0].x) - xi;
-        dy = ((i + 1 < chull.points.size()) ? chull[i+1].points.y : chull.points[0].y) - yi;
-þ
+        dx = ((i + 1 < chull.points.size()) ? chull.points[i+1].x : chull.points[0].x) - xi;
+        dy = ((i + 1 < chull.points.size()) ? chull.points[i+1].y : chull.points[0].y) - yi;
         length = sqrt(dx * dx + dy * dy);
 
         xs = xi + (dy/length)*offset;
