@@ -17,13 +17,12 @@
 
 /**
  * @brief constructConstraint
- * @param ConvexHull with the points of the volume. These points should be in the correct order. This means that the
- * points should represent the border of the volume. Because consecutive point pairs are used to create the contstraint.
- * First point is added to the end, so also the pair 'first-last' is used.
+ * @param ConvexHull with the points of the volume. Points of the volume, must follow the border of the volume.
+ * Last point is connected to first point. The minimum number of points is 3.
  * @param constraint string with the contraint
  * @param offset offset to the constraint
  */
-void constructConstraint(ed::ConvexHull& chull, std::stringstream& constraint, double offset = 0)
+void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constraint, double offset = 0)
 {
     if (chull.points.size() < 3)
     {
@@ -31,26 +30,23 @@ void constructConstraint(ed::ConvexHull& chull, std::stringstream& constraint, d
         return;
     }
 
-    std::vector<geo::Vec2f> points = chull.points;
-    points.push_back(points[0]);
-
     // To make sure we don't get e powers in the string
     constraint << std::fixed << std::setprecision(6);
 
     constraint << "(";
 
     double dx,dy,xi,yi,xs,ys,length;
-    for (unsigned int i = 0; i < points.size()-1; ++i)
+    for (unsigned int i = 0; i < chull.points.size()-1; ++i)
     {
         if (i > 0)
             constraint << " and ";
 
-        xi = points[i].x;
-        yi = points[i].y;
+        xi = chull.points[i].x;
+        yi = chull.points[i].y;
 
-        dx = points[i+1].x - xi;
-        dy = points[i+1].y - yi;
-
+        dx = ((i + 1 < chull.points.size()) ? chull[i+1].points.x : chull.points[0].x) - xi;
+        dy = ((i + 1 < chull.points.size()) ? chull[i+1].points.y : chull.points[0].y) - yi;
+þ
         length = sqrt(dx * dx + dy * dy);
 
         xs = xi + (dy/length)*offset;
