@@ -18,7 +18,7 @@
 /**
  * @brief constructConstraint
  * @param ConvexHull with the points of the volume. These points should be in the correct order. This means that the
- * points should represent the border of the volume. Becuase consecutive point pairs are used to create the contstraint.
+ * points should represent the border of the volume. Because consecutive point pairs are used to create the contstraint.
  * First point is added to the end, so also the pair 'first-last' is used.
  * @param constraint string with the contraint
  * @param offset offset to the constraint
