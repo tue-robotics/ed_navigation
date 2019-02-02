@@ -201,7 +201,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
 {
     if (req.entity_ids.size() != req.area_names.size())
     {
-        res.error_msg = "Entity ids and volume names are not from equal length";
+        res.error_msg = "Number of entity ids and number of volume names are not the same";
         return true;
     }
 
