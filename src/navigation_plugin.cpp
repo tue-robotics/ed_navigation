@@ -59,7 +59,6 @@ void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constra
 
 // ----------------------------------------------------------------------------------------------------
 
-
 //
 /**
  * @brief constructShapeConstraint
@@ -98,9 +97,8 @@ std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3
 
 // ----------------------------------------------------------------------------------------------------
 
-//
 /**
- * @brief constructCompositeShapeConstraint
+ * @brief constructCompositeShapeConstraint Construct a constraint based on each sub shape of a CompositeShape
  * @param composite CompositeShape of the volume in entity frame
  * @param entity_pose pose of the entity
  * @return constraint string
