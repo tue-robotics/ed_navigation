@@ -212,7 +212,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
     {
         ed::EntityConstPtr e = world_->getEntity(req.entity_ids[i]);
 
-        double offset = 0.;
+        double offset = 0.0;
 
         if (!e)
         {
