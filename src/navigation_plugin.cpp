@@ -109,7 +109,7 @@ std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& compo
 
     bool first_sub_shape = true;
 
-    std::vector<std::pair<geo::ShapePtr, geo::Transform> > sub_shapes = composite->getShapes();
+    const std::vector<std::pair<geo::ShapePtr, geo::Transform> >& sub_shapes = composite->getShapes();
 
     for (std::vector<std::pair<geo::ShapePtr, geo::Transform> >::const_iterator it = sub_shapes.begin();
          it != sub_shapes.end(); ++it)
@@ -227,7 +227,6 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         }
 
         std::stringstream entity_constraint;
-        bool volume_found = false;
 
         if(req.area_names[i] == "near")
         {
@@ -236,7 +235,6 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
                 res.error_msg = "Navigating to area 'near' of entity '" + req.entity_ids[i] + "' isn't possible, because it doesn't have a shape.";
                 continue;
             }
-            volume_found = true;
             std::vector<geo::Vec2f> points;
 
             for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
@@ -252,22 +250,21 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             std::map<std::string, geo::ShapeConstPtr> volumes = e->volumes();
 
             std::map<std::string, geo::ShapeConstPtr>::iterator it = volumes.find(req.area_names[i]);
-            if (it != volumes.end())
+            if (it == volumes.end())
             {
-                volume_found = true;
-                std::string shape_constraint;
-                geo::CompositeShapeConstPtr composite = boost::dynamic_pointer_cast<const geo::CompositeShape>(it->second);
-                if (composite)
-                    shape_constraint = constructCompositeShapeConstraint(composite, e->pose());
-                else
-                    shape_constraint = constructShapeConstraint(it->second, e->pose());
-
-                entity_constraint << "(" << shape_constraint << ")";
+                res.error_msg = "Entity '" + e->id().str() + "': volume '" + req.area_names[i] + "' does not exist";
+                continue;
             }
-        }
 
-        if (!volume_found)
-            res.error_msg = "Entity '" + e->id().str() + "': volume '" + req.area_names[i] + "' does not exist";
+            std::string shape_constraint;
+            geo::CompositeShapeConstPtr composite = boost::dynamic_pointer_cast<const geo::CompositeShape>(it->second);
+            if (composite)
+                shape_constraint = constructCompositeShapeConstraint(composite, e->pose());
+            else
+                shape_constraint = constructShapeConstraint(it->second, e->pose());
+
+            entity_constraint << "(" << shape_constraint << ")";
+        }
 
         // add to constraint here
         if (first)
