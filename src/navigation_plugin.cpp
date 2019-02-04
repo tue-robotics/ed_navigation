@@ -16,8 +16,8 @@
 // ----------------------------------------------------------------------------------------------------
 
 /**
- * @brief constructConstraint
- * @param ConvexHull with the points of the volume. Points of the volume, must follow the border of the volume.
+ * @brief constructConstraint Construct a costraint which matches the border of the convexhull
+ * @param chull with the points of the volume. Points of the volume, must follow the border of the volume.
  * Last point is connected to first point. The minimum number of points is 3.
  * @param constraint string with the contraint
  * @param offset offset to the constraint
@@ -36,7 +36,7 @@ void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constra
     constraint << "(";
 
     double dx,dy,xi,yi,xs,ys,length;
-    for (unsigned int i = 0; i < chull.points.size()-1; ++i)
+    for (unsigned int i = 0; i < chull.points.size(); ++i)
     {
         if (i > 0)
             constraint << " and ";
@@ -61,7 +61,7 @@ void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constra
 
 //
 /**
- * @brief constructShapeConstraint
+ * @brief constructShapeConstraint Construct a constraint based on the mesh of shape
  * @param shape shape of the volume in entity frame
  * @param entity_pose pose of the entity
  * @return constraint string
