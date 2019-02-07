@@ -3,11 +3,11 @@
 """Visualize Symbolic Navigation Goal
 
 Usage:
-  visualize-symbolic-navigation-goal [<entity_id> <area_name>]...
+  visualize-symbolic-navigation-goal [<robot_name> <entity_id> <volume_name>]...
 
 Examples:
-  visualize-symbolic-navigation-goal plastic_cabinet in_front_of
-  visualize-symbolic-navigation-goal plastic_cabinet in_front_of living_room in
+  visualize-symbolic-navigation-goal amigo plastic_cabinet in_front_of
+  visualize-symbolic-navigation-goal hero plastic_cabinet in_front_of living_room in
 """
 
 import rospy
@@ -20,24 +20,27 @@ from docopt import docopt
 if __name__ == '__main__':
     rospy.init_node("visualize_symbolic_navigation_goal")
 
-    sys.argv = [ v for v in sys.argv if v[0] != "_" ]
+    sys.argv = [v for v in sys.argv if v[0] != "_"]
 
     arguments = docopt(__doc__)
-    print "Visualizing the following symbolic constraints: \n"
-    print arguments
-    print ""
+    print("Visualizing the following symbolic constraints: \n")
+    print(arguments)
+    print("")
+
+    robot_name = arguments["<robot_name>"][0]
 
     try:
-        constraint_srv = rospy.ServiceProxy('ed/navigation/get_constraint', GetGoalConstraint)
-        resp = constraint_srv(entity_ids=[c for c in arguments["<entity_id>"]], area_names=[a for a in arguments["<area_name>"]])
-        print "Constraint in map frame: \n"
-        print resp.position_constraint_map_frame
-        print ""
-        try:
-            plan_srv = rospy.ServiceProxy('global_planner/get_plan_srv', GetPlan)
-            plan_srv(goal_position_constraints=[PositionConstraint(frame="/map", constraint=resp.position_constraint_map_frame)])
-            print "** Published Visualization Marker **"
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
-    except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
+        constraint_srv = rospy.ServiceProxy('/{}/ed/navigation/get_constraint'.format(robot_name),
+                                            GetGoalConstraint)
+        resp = constraint_srv(entity_ids=[c for c in arguments["<entity_id>"]],
+                              area_names=[a for a in arguments["<volume_name>"]])
+        print("Constraint in map frame: \n")
+        print(resp.position_constraint_map_frame)
+        print("")
+
+        plan_srv = rospy.ServiceProxy('/{}/global_planner/get_plan_srv'.format(robot_name), GetPlan)
+        plan_srv(goal_position_constraints=[PositionConstraint(frame="/map",
+                                                               constraint=resp.position_constraint_map_frame)])
+        print("** Published Visualization Marker **")
+    except rospy.ServiceException as e:
+        print ("Service call failed: {}".format(e))

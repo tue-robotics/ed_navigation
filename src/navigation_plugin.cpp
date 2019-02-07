@@ -2,41 +2,33 @@
 
 #include <ed/entity.h>
 #include <ed/error_context.h>
+#include <ed/convex_hull.h>
+#include <ed/convex_hull_calc.h>
 
 #include <tue/config/reader.h>
+
+#include <geolib/datatypes.h>
+#include <geolib/Shape.h>
+#include <geolib/CompositeShape.h>
 
 #include <iomanip>
 
 // ----------------------------------------------------------------------------------------------------
-/**
- * @brief transformChull transform all points in chull with pose
- * @param pose pose to be applied to the points in chull
- * @param chull points to be transformed
- */
-void transformChull(const geo::Pose3D& pose, std::vector<geo::Vector3>& chull)
-{
-    for (unsigned int i = 0; i < chull.size(); ++i)
-        chull[i] = pose * chull[i];
-}
-
-// ----------------------------------------------------------------------------------------------------
 
 /**
- * @brief constructConstraint
- * @param chull Vector with the points of the area. These points should be in the correct order. This means that the points should represent the border of the area.
- * Becuase consecutive point pairs are used to create the contstraint. First point is added to the end, so also the pair 'first-last' is used.
+ * @brief constructConstraint Construct a costraint which matches the border of the convexhull
+ * @param chull with the points of the volume. Points of the volume, must follow the border of the volume.
+ * Last point is connected to first point. The minimum number of points is 3.
  * @param constraint string with the contraint
  * @param offset offset to the constraint
  */
-void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& constraint, double offset = 0)
+void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constraint, double offset = 0)
 {
-    if (chull.size() < 3)
+    if (chull.points.size() < 3)
     {
         std::cout << "Error: Convex hull has to consist of at least three points !!" << std::endl;
         return;
     }
-
-    chull.push_back(chull[0]);
 
     // To make sure we don't get e powers in the string
     constraint << std::fixed << std::setprecision(6);
@@ -44,17 +36,16 @@ void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& co
     constraint << "(";
 
     double dx,dy,xi,yi,xs,ys,length;
-    for (unsigned int i = 0; i < chull.size()-1; ++i)
+    for (unsigned int i = 0; i < chull.points.size(); ++i)
     {
         if (i > 0)
             constraint << " and ";
 
-        xi = chull[i].x;
-        yi = chull[i].y;
+        xi = chull.points[i].x;
+        yi = chull.points[i].y;
 
-        dx = chull[i+1].x - xi;
-        dy = chull[i+1].y - yi;
-
+        dx = ((i + 1 < chull.points.size()) ? chull.points[i+1].x : chull.points[0].x) - xi;
+        dy = ((i + 1 < chull.points.size()) ? chull.points[i+1].y : chull.points[0].y) - yi;
         length = sqrt(dx * dx + dy * dy);
 
         xs = xi + (dy/length)*offset;
@@ -70,82 +61,69 @@ void constructConstraint(std::vector<geo::Vector3>& chull, std::stringstream& co
 
 //
 /**
- * @brief constructShapeConstraint
- * @param r r must be currently reading an array of shapes
+ * @brief constructShapeConstraint Construct a constraint based on the mesh of shape
+ * @param shape shape of the volume in entity frame
  * @param entity_pose pose of the entity
  * @return constraint string
  */
-std::string constructShapeConstraint(tue::config::Reader& r, const geo::Pose3D& entity_pose)
+std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3D& entity_pose)
+{
+    std::stringstream shape_constraint;
+
+    geo::Shape shape_tr;
+    shape_tr.setMesh(shape->getMesh().getTransformed(entity_pose)); // get shape in map frame.
+    std::vector<geo::Vector3> points = shape_tr.getMesh().getPoints();
+
+    // Calculate cluster convex hull
+    float z_min = 1e9;
+    float z_max = -1e9;
+
+    // Calculate z_min and z_max of cluster
+    std::vector<geo::Vec2f> points_2d;
+    for(std::vector<geo::Vector3>::const_iterator it = points.begin(); it != points.end(); ++it)
+    {
+        points_2d.push_back(geo::Vec2f(it->x, it->y));
+
+        z_min = std::min<float>(z_min, it->z);
+        z_max = std::max<float>(z_max, it->z);
+    }
+
+    ed::ConvexHull chull;
+    ed::convex_hull::createAbsolute(points_2d, z_min, z_max, chull);
+
+    constructConstraint(chull, shape_constraint);
+    return shape_constraint.str();
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+/**
+ * @brief constructCompositeShapeConstraint Construct a constraint based on each sub shape of a CompositeShape
+ * @param composite CompositeShape of the volume in entity frame
+ * @param entity_pose pose of the entity
+ * @return constraint string
+ */
+std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& composite, const geo::Pose3D& entity_pose)
 {
     std::stringstream shape_constraint;
 
     bool first_sub_shape = true;
-    while(r.nextArrayItem())
+
+    const std::vector<std::pair<geo::ShapePtr, geo::Transform> >& sub_shapes = composite->getShapes();
+
+    for (std::vector<std::pair<geo::ShapePtr, geo::Transform> >::const_iterator it = sub_shapes.begin();
+         it != sub_shapes.end(); ++it)
     {
-        std::stringstream sub_shape_constraint;
-
-        if (r.readGroup("box", tue::config::OPTIONAL))
-        {
-            std::vector<geo::Vector3> chull; // In MAP frame
-
-            geo::Vector3 min, max;
-
-            if (r.readGroup("min"))
-            {
-                r.value("x", min.x);
-                r.value("y", min.y);
-                r.value("z", min.z);
-                r.endGroup();
-            }
-
-            if (r.readGroup("max"))
-            {
-                r.value("x", max.x);
-                r.value("y", max.y);
-                r.value("z", max.z);
-                r.endGroup();
-            }
-
-            chull.push_back(min);
-            chull.push_back(geo::Vector3(max.x, min.y, 0));
-            chull.push_back(max);
-            chull.push_back(geo::Vector3(min.x, max.y, 0));
-
-            // Transform to map frame, and add to entity constraint
-            transformChull(entity_pose, chull);
-            constructConstraint(chull, sub_shape_constraint);
-
-            r.endGroup();
-        }
-        else if (r.readGroup("polygon", tue::config::OPTIONAL))
-        {
-            std::vector<geo::Vector3> chull; // In MAP frame
-
-            if (r.readArray("points", tue::config::REQUIRED))
-            {
-                while(r.nextArrayItem())
-                {
-                    double x, y;
-                    if (r.value("x", x) && r.value("y", y))
-                        chull.push_back(geo::Vector3(x, y, 0));
-                }
-                r.endArray();
-            }
-            r.endGroup();
-
-            // Transform to map frame, and add to entity constraint
-            transformChull(entity_pose, chull);
-            constructConstraint(chull, sub_shape_constraint);
-        }
-
-        if (!sub_shape_constraint.str().empty())
+        geo::ShapeConstPtr ShapeC = boost::const_pointer_cast<geo::Shape>(it->first);
+        std::string sub_shape_constraint = constructShapeConstraint(ShapeC, entity_pose * it->second.inverse());
+        if (!sub_shape_constraint.empty())
         {
             if (first_sub_shape)
                 first_sub_shape = false;
             else
                 shape_constraint << " or ";
 
-           shape_constraint << "(" << sub_shape_constraint.str() << ")";
+           shape_constraint << "(" << sub_shape_constraint << ")";
         }
     }
 
@@ -211,7 +189,7 @@ void NavigationPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& r
 // ----------------------------------------------------------------------------------------------------
 
 /**
- * @brief NavigationPlugin::srvGetGoalConstraint Create a constraint to navigate to a specific area.
+ * @brief NavigationPlugin::srvGetGoalConstraint Create a constraint to navigate to a specific volume.
  * @param req service request
  * @param res service result
  * @return bool
@@ -220,7 +198,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
 {
     if (req.entity_ids.size() != req.area_names.size())
     {
-        res.error_msg = "Entity ids and area names are not from equal length";
+        res.error_msg = "Number of entity ids and number of volume names are not the same";
         return true;
     }
 
@@ -250,67 +228,42 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
 
         std::stringstream entity_constraint;
 
-        const tue::config::DataConstPointer& data = e->data();
-        tue::config::Reader r(data);
-        if (!data.empty() && r.readArray("areas"))
+        if(req.area_names[i] == "near")
         {
-            bool found_area = false;
-            while(r.nextArrayItem())
+            if (!e->shape())
             {
-                std::string name;
-                if (!r.value("name", name) || name != req.area_names[i])
-                    continue;
-
-                found_area = true;
-
-                if (!r.readArray("shape", tue::config::OPTIONAL))
-                {
-                    std::vector<geo::Vector3> chull; // In MAP frame
-
-                    // If no shape specified, get the convex hull of the object
-                    for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
-                        chull.push_back(geo::Vector3(it->x + e->pose().t.x, it->y + e->pose().t.y, 0.0));
-
-                    // Default if not specified
-                    if (!r.value("offset", offset, tue::config::OPTIONAL))
-                        offset = default_offset_;
-
-                    //Th chull is already in map frame, no need to transform it from the local frame to the global /map frame
-                    constructConstraint(chull, entity_constraint, offset);
-                }
-                else
-                {
-                    std::string shape_constraint = constructShapeConstraint(r, e->pose());
-                    if (!shape_constraint.empty())
-                        entity_constraint << "(" << shape_constraint << ")";
-                    r.endArray();
-                }
+                res.error_msg = "Navigating to area 'near' of entity '" + req.entity_ids[i] + "' isn't possible, because it doesn't have a shape.";
+                continue;
             }
+            std::vector<geo::Vec2f> points;
 
-            if (!found_area)
-                res.error_msg = "Entity '" + e->id().str() + "': area '" + req.area_names[i] + "' does not exist";
+            for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
+                points.push_back(geo::Vec2f(it->x + e->pose().t.x, it->y + e->pose().t.y));
+            ed::ConvexHull chull; // In MAP frame
+            ed::convex_hull::createAbsolute(points, 0., 0.1, chull);
+            offset = default_offset_;
 
-            r.endArray();
+            constructConstraint(chull, entity_constraint, offset);
         }
         else
         {
-            // Check whether the request is 'near' --> do the convex hull with default offset
-            if (req.area_names[i] == "near")
+            std::map<std::string, geo::ShapeConstPtr> volumes = e->volumes();
+
+            std::map<std::string, geo::ShapeConstPtr>::iterator it = volumes.find(req.area_names[i]);
+            if (it == volumes.end())
             {
-
-                std::vector<geo::Vector3> chull; // In MAP frame
-
-                for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
-                    chull.push_back(geo::Vector3(it->x + e->pose().t.x, it->y + e->pose().t.y, 0.0));
-                offset = default_offset_;
-
-                constructConstraint(chull, entity_constraint, offset);
-            }
-            else
-            {
-                res.error_msg = "Entity '" + e->id().str() + "': does not have an 'areas' property and the area name is not 'near'; it it '" + req.area_names[i] + "'.";
+                res.error_msg = "Entity '" + e->id().str() + "': volume '" + req.area_names[i] + "' does not exist";
                 continue;
             }
+
+            std::string shape_constraint;
+            geo::CompositeShapeConstPtr composite = boost::dynamic_pointer_cast<const geo::CompositeShape>(it->second);
+            if (composite)
+                shape_constraint = constructCompositeShapeConstraint(composite, e->pose());
+            else
+                shape_constraint = constructShapeConstraint(it->second, e->pose());
+
+            entity_constraint << "(" << shape_constraint << ")";
         }
 
         // add to constraint here
@@ -321,7 +274,6 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
 
         constraint << "(" << entity_constraint.str() << ")";
     }
-
 
 
     res.position_constraint_map_frame = constraint.str();
