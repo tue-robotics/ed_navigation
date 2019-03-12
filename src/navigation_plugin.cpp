@@ -22,7 +22,7 @@
  * @param constraint string with the contraint
  * @param offset offset to the constraint
  */
-void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constraint, const double offset = 0)
+void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constraint, const double offset = 0.0)
 {
     if (chull.points.size() < 3)
     {
@@ -66,7 +66,7 @@ void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constra
  * @param entity_pose pose of the entity
  * @return constraint string
  */
-std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3D& entity_pose, const double offset = 0.)
+std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3D& entity_pose, const double offset = 0.0)
 {
     std::stringstream shape_constraint;
 
@@ -156,10 +156,10 @@ void NavigationPlugin::configure(tue::Configuration config)
 
         config.value("default_offset", default_offset_);
         if(!config.value("room_offset", room_offset_, tue::config::OPTIONAL))
-            room_offset_ = 0.;
+            room_offset_ = 0.0;
 
         if (!config.value("unknown_obstacle_inflation", unknown_obstacle_inflation, tue::config::OPTIONAL))
-            unknown_obstacle_inflation = 0.;
+            unknown_obstacle_inflation = 0.0;
 
         std::cout << "Using min max " << min_z << ", " << max_z << std::endl;
         occupancy_grid_publisher_.configure(nh, config, res, min_z, max_z, frame_id, unknown_obstacle_inflation);
@@ -242,7 +242,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
                 points.push_back(geo::Vec2f(it->x + e->pose().t.x, it->y + e->pose().t.y));
             ed::ConvexHull chull; // In MAP frame
-            ed::convex_hull::createAbsolute(points, 0., 0.1, chull);
+            ed::convex_hull::createAbsolute(points, 0.0, 0.1, chull);
             offset = default_offset_;
 
             constructConstraint(chull, entity_constraint, offset);
