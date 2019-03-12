@@ -103,7 +103,8 @@ std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3
  * @param entity_pose pose of the entity
  * @return constraint string
  */
-std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& composite, const geo::Pose3D& entity_pose)
+std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& composite, const geo::Pose3D& entity_pose,
+                                              const double offset = 0.0)
 {
     std::stringstream shape_constraint;
 
@@ -115,7 +116,7 @@ std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& compo
          it != sub_shapes.end(); ++it)
     {
         geo::ShapeConstPtr ShapeC = boost::const_pointer_cast<geo::Shape>(it->first);
-        std::string sub_shape_constraint = constructShapeConstraint(ShapeC, entity_pose * it->second.inverse());
+        std::string sub_shape_constraint = constructShapeConstraint(ShapeC, entity_pose * it->second.inverse(), offset);
         if (!sub_shape_constraint.empty())
         {
             if (first_sub_shape)
@@ -249,14 +250,14 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         }
         else
         {
-            std::map<std::string, geo::ShapeConstPtr>::iterator it = e->volumes().find(req.area_names[i]);
-            if (it == volumes.end())
+            std::map<std::string, geo::ShapeConstPtr>::const_iterator it = e->volumes().find(req.area_names[i]);
+            if (it == e->volumes.end())
             {
                 res.error_msg = "Entity '" + e->id().str() + "': volume '" + req.area_names[i] + "' does not exist";
                 continue;
             }
 
-            if (area_name == "in")
+            if (req.area_names[i] == "in")
                     offset = room_offset_;
 
             std::string shape_constraint;
