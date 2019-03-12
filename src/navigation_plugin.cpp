@@ -250,8 +250,8 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         }
         else
         {
-            std::map<std::string, geo::ShapeConstPtr>::const_iterator it = e->volumes().find(req.area_names[i]);
-            if (it == e->volumes.end())
+            std::map<std::string, geo::ShapeConstPtr>::iterator it = e->volumes().find(req.area_names[i]);
+            if (it == e->volumes().end())
             {
                 res.error_msg = "Entity '" + e->id().str() + "': volume '" + req.area_names[i] + "' does not exist";
                 continue;
