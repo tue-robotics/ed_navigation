@@ -66,7 +66,7 @@ void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constra
  * @param entity_pose pose of the entity
  * @return constraint string
  */
-std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3D& entity_pose, const double offset = 0.0)
+std::string constructShapeConstraint(const geo::ShapeConstPtr& shape, const geo::Pose3D& entity_pose, const double offset = 0.0)
 {
     std::stringstream shape_constraint;
 
@@ -250,7 +250,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
         }
         else
         {
-            std::map<std::string, geo::ShapeConstPtr>::iterator it = e->volumes().find(req.area_names[i]);
+            std::map<std::string, geo::ShapeConstPtr>::const_iterator it = e->volumes().find(req.area_names[i]);
             if (it == e->volumes().end())
             {
                 res.error_msg = "Entity '" + e->id().str() + "': volume '" + req.area_names[i] + "' does not exist";
@@ -258,7 +258,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             }
 
             if (req.area_names[i] == "in")
-                    offset = room_offset_;
+                offset = room_offset_;
 
             std::string shape_constraint;
             geo::CompositeShapeConstPtr composite = boost::dynamic_pointer_cast<const geo::CompositeShape>(it->second);
