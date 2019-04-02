@@ -64,6 +64,7 @@ void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constra
  * @brief constructShapeConstraint Construct a constraint based on the mesh of shape
  * @param shape shape of the volume in entity frame
  * @param entity_pose pose of the entity
+ * @param offset offset to the constraint
  * @return constraint string
  */
 std::string constructShapeConstraint(const geo::ShapeConstPtr& shape, const geo::Pose3D& entity_pose, const double offset = 0.0)
@@ -101,6 +102,8 @@ std::string constructShapeConstraint(const geo::ShapeConstPtr& shape, const geo:
  * @brief constructCompositeShapeConstraint Construct a constraint based on each sub shape of a CompositeShape
  * @param composite CompositeShape of the volume in entity frame
  * @param entity_pose pose of the entity
+ * @param offset offset to the constraint. N.B.: this is applied to the children of the composite shape separately.
+ * As a result, the shape constraint may be disjoint.
  * @return constraint string
  */
 std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& composite, const geo::Pose3D& entity_pose,
