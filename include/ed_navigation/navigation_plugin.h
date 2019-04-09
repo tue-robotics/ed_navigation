@@ -81,6 +81,11 @@ private:
     
     // Default
     double default_offset_;
+    double room_offset_; // offset to a room. Room is defined to the edges, but you want the robot to drive more into
+                         // the room, instead of really standing in the door/on the room edge. So offset is the distance
+                         // how much the base_link of the robot should be more into the room.
+                         // At the moment, the children of CompositeShapes are reduced individually, this can cause some
+                         // spots in the middle of the room to be excluded.
 
 };
 

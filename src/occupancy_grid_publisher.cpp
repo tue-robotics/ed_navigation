@@ -14,7 +14,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-void OccupancyGridPublisher::configure(ros::NodeHandle& nh, tue::Configuration config, const double& res, const double& min_z, const double& max_z,
+void OccupancyGridPublisher::configure(ros::NodeHandle& nh, const double& res, const double& min_z, const double& max_z,
                                        const std::string& frame_id, double unknown_obstacle_inflation)
 {
     convex_hull_enabled_ = true;

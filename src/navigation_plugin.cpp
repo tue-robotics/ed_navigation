@@ -11,6 +11,8 @@
 #include <geolib/Shape.h>
 #include <geolib/CompositeShape.h>
 
+#include <ros/console.h>
+
 #include <iomanip>
 
 // ----------------------------------------------------------------------------------------------------
@@ -22,7 +24,7 @@
  * @param constraint string with the contraint
  * @param offset offset to the constraint
  */
-void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constraint, double offset = 0)
+void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constraint, const double offset = 0.0)
 {
     if (chull.points.size() < 3)
     {
@@ -64,9 +66,10 @@ void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constra
  * @brief constructShapeConstraint Construct a constraint based on the mesh of shape
  * @param shape shape of the volume in entity frame
  * @param entity_pose pose of the entity
+ * @param offset offset to the constraint
  * @return constraint string
  */
-std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3D& entity_pose)
+std::string constructShapeConstraint(const geo::ShapeConstPtr& shape, const geo::Pose3D& entity_pose, const double offset = 0.0)
 {
     std::stringstream shape_constraint;
 
@@ -91,7 +94,7 @@ std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3
     ed::ConvexHull chull;
     ed::convex_hull::createAbsolute(points_2d, z_min, z_max, chull);
 
-    constructConstraint(chull, shape_constraint);
+    constructConstraint(chull, shape_constraint, offset);
     return shape_constraint.str();
 }
 
@@ -101,9 +104,12 @@ std::string constructShapeConstraint(geo::ShapeConstPtr& shape, const geo::Pose3
  * @brief constructCompositeShapeConstraint Construct a constraint based on each sub shape of a CompositeShape
  * @param composite CompositeShape of the volume in entity frame
  * @param entity_pose pose of the entity
+ * @param offset offset to the constraint. N.B.: this is applied to the children of the composite shape separately.
+ * As a result, the shape constraint may be disjoint.
  * @return constraint string
  */
-std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& composite, const geo::Pose3D& entity_pose)
+std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& composite, const geo::Pose3D& entity_pose,
+                                              const double offset = 0.0)
 {
     std::stringstream shape_constraint;
 
@@ -115,7 +121,7 @@ std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& compo
          it != sub_shapes.end(); ++it)
     {
         geo::ShapeConstPtr ShapeC = boost::const_pointer_cast<geo::Shape>(it->first);
-        std::string sub_shape_constraint = constructShapeConstraint(ShapeC, entity_pose * it->second.inverse());
+        std::string sub_shape_constraint = constructShapeConstraint(ShapeC, entity_pose * it->second.inverse(), offset);
         if (!sub_shape_constraint.empty())
         {
             if (first_sub_shape)
@@ -143,6 +149,15 @@ void NavigationPlugin::configure(tue::Configuration config)
 
     srv_get_goal_constraint_ = nh.advertiseService(opt_srv_get_goal_constraint);
 
+    if (config.readGroup("constraint_service", tue::config::REQUIRED))
+    {
+        config.value("default_offset", default_offset_);
+        if (!config.value("room_offset", room_offset_, tue::config::OPTIONAL))
+            room_offset_ = 0.0;
+        ROS_DEBUG_STREAM("[ED NAVIGATION] Default offset: " << default_offset_ << ", Room offset: " << room_offset_);
+        config.endGroup();
+    }
+
     // Configure the occupancy grid publisher
     if (config.readGroup("occupancy_grid_publisher"))
     {
@@ -154,13 +169,11 @@ void NavigationPlugin::configure(tue::Configuration config)
         config.value("min_z", min_z);
         config.value("max_z", max_z);
 
-        config.value("default_offset", default_offset_);
-
         if (!config.value("unknown_obstacle_inflation", unknown_obstacle_inflation, tue::config::OPTIONAL))
-            unknown_obstacle_inflation = 0;
+            unknown_obstacle_inflation = 0.0;
 
-        std::cout << "Using min max " << min_z << ", " << max_z << std::endl;
-        occupancy_grid_publisher_.configure(nh, config, res, min_z, max_z, frame_id, unknown_obstacle_inflation);
+        ROS_DEBUG_STREAM("[ED NAVIGATION] Using min_z: " << min_z << ",  max_z: " << max_z);
+        occupancy_grid_publisher_.configure(nh, res, min_z, max_z, frame_id, unknown_obstacle_inflation);
 
         config.endGroup();
     }
@@ -240,28 +253,29 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
                 points.push_back(geo::Vec2f(it->x + e->pose().t.x, it->y + e->pose().t.y));
             ed::ConvexHull chull; // In MAP frame
-            ed::convex_hull::createAbsolute(points, 0., 0.1, chull);
+            ed::convex_hull::createAbsolute(points, 0.0, 0.1, chull);
             offset = default_offset_;
 
             constructConstraint(chull, entity_constraint, offset);
         }
         else
         {
-            std::map<std::string, geo::ShapeConstPtr> volumes = e->volumes();
-
-            std::map<std::string, geo::ShapeConstPtr>::iterator it = volumes.find(req.area_names[i]);
-            if (it == volumes.end())
+            std::map<std::string, geo::ShapeConstPtr>::const_iterator it = e->volumes().find(req.area_names[i]);
+            if (it == e->volumes().end())
             {
                 res.error_msg = "Entity '" + e->id().str() + "': volume '" + req.area_names[i] + "' does not exist";
                 continue;
             }
 
+            if (req.area_names[i] == "in")
+                offset = room_offset_;
+
             std::string shape_constraint;
             geo::CompositeShapeConstPtr composite = boost::dynamic_pointer_cast<const geo::CompositeShape>(it->second);
             if (composite)
-                shape_constraint = constructCompositeShapeConstraint(composite, e->pose());
+                shape_constraint = constructCompositeShapeConstraint(composite, e->pose(), offset);
             else
-                shape_constraint = constructShapeConstraint(it->second, e->pose());
+                shape_constraint = constructShapeConstraint(it->second, e->pose(), offset);
 
             entity_constraint << "(" << shape_constraint << ")";
         }
