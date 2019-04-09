@@ -152,7 +152,7 @@ void NavigationPlugin::configure(tue::Configuration config)
     if (config.readGroup("constraint_service", tue::config::REQUIRED))
     {
         config.value("default_offset", default_offset_);
-        if(!config.value("room_offset", room_offset_, tue::config::OPTIONAL))
+        if (!config.value("room_offset", room_offset_, tue::config::OPTIONAL))
             room_offset_ = 0.0;
         ROS_DEBUG_STREAM("[ED NAVIGATION] Default offset: " << default_offset_ << ", Room offset: " << room_offset_);
         config.endGroup();
