@@ -251,7 +251,11 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstrai
             std::vector<geo::Vec2f> points;
 
             for (std::vector<geo::Vec2f>::const_iterator it = e->convexHull().points.begin(); it != e->convexHull().points.end(); ++it)
-                points.push_back(geo::Vec2f(it->x + e->pose().t.x, it->y + e->pose().t.y));
+            {
+                geo::Vec3d point3d = e->pose() * geo::Vec3d(it->x, it->y, 0.0);
+                points.push_back(geo::Vec2f(point3d.x, point3d.y));
+            }
+                
             ed::ConvexHull chull; // In MAP frame
             ed::convex_hull::createAbsolute(points, 0.0, 0.1, chull);
             offset = default_offset_;
