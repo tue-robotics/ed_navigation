@@ -68,6 +68,9 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
     {
         const ed::EntityConstPtr& e = *it;
 
+        if (e->id().str() == "rack") //HACK
+            continue;
+
         if (!e->has_pose() || e->existenceProbability() < 0.95 || e->hasFlag("self"))
             continue;
 
