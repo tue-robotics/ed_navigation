@@ -12,8 +12,8 @@
 
   <build_depend>cb_planner_msgs_srvs</build_depend>
   <build_depend>ed</build_depend>
+  <build_depend>ed_navigation_msgs</build_depend>
   <build_depend>ed_sensor_integration</build_depend>
-  <build_depend>message_generation</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>rgbd</build_depend>
   <build_depend>sensor_msgs</build_depend>
@@ -21,8 +21,8 @@
 
   <run_depend>cb_planner_msgs_srvs</run_depend>
   <run_depend>ed</run_depend>
+  <run_depend>ed_navigation_msgs</run_depend>
   <run_depend>ed_sensor_integration</run_depend>
-  <run_depend>message_runtime</run_depend>
   <run_depend>nav_msgs</run_depend>
   <run_depend>rgbd</run_depend>
   <run_depend>sensor_msgs</run_depend>
