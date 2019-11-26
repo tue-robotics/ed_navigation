@@ -143,7 +143,7 @@ void NavigationPlugin::configure(tue::Configuration config)
     ros::NodeHandle nh("~/navigation");
 
     ros::AdvertiseServiceOptions opt_srv_get_goal_constraint =
-            ros::AdvertiseServiceOptions::create<ed_navigation::GetGoalConstraint>(
+            ros::AdvertiseServiceOptions::create<ed_navigation_msgs::GetGoalConstraint>(
                 "get_constraint", boost::bind(&NavigationPlugin::srvGetGoalConstraint, this, _1, _2),
                 ros::VoidPtr(), &cb_queue_);
 
@@ -207,7 +207,7 @@ void NavigationPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& r
  * @param res service result
  * @return bool
  */
-bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation::GetGoalConstraint::Request& req, ed_navigation::GetGoalConstraint::Response& res)
+bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation_msgs::GetGoalConstraint::Request& req, ed_navigation_msgs::GetGoalConstraint::Response& res)
 {
     if (req.entity_ids.size() != req.area_names.size())
     {

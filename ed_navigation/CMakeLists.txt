@@ -7,26 +7,16 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   cb_planner_msgs_srvs
   ed
+  ed_navigation_msgs
   ed_sensor_integration
-  message_generation
   nav_msgs
   sensor_msgs
   roscpp
   rgbd
 )
 
-add_service_files(
-  FILES
-    GetGoalConstraint.srv
-)
-
-generate_messages(
-  DEPENDENCIES
-)
-
 catkin_package(
-  CATKIN_DEPENDS
-    cb_planner_msgs_srvs ed message_runtime nav_msgs rgbd
+  CATKIN_DEPENDS ed ed_navigation_msgs roscpp
 )
 
 include_directories(
@@ -46,7 +36,7 @@ add_library(ed_kinect_navigation_plugin
 )
 
 target_link_libraries(ed_navigation_plugin ${catkin_LIBRARIES})
-add_dependencies(ed_navigation_plugin ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(ed_navigation_plugin ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(ed_kinect_navigation_plugin ${catkin_LIBRARIES})
-add_dependencies(ed_kinect_navigation_plugin ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(ed_kinect_navigation_plugin ${catkin_EXPORTED_TARGETS})

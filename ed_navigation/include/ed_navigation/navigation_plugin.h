@@ -4,7 +4,7 @@
 #include <ed/plugin.h>
 #include <ed/world_model.h>
 
-#include <ed_navigation/GetGoalConstraint.h>
+#include <ed_navigation_msgs/GetGoalConstraint.h>
 
 #include "../../src/occupancy_grid_publisher.h"
 
@@ -65,7 +65,7 @@ private:
      * @param res   ed_navigation::GetGoalConstraint::Response&
      * @return bool
      */
-    bool srvGetGoalConstraint(const ed_navigation::GetGoalConstraint::Request& req, ed_navigation::GetGoalConstraint::Response& res);
+    bool srvGetGoalConstraint(const ed_navigation_msgs::GetGoalConstraint::Request& req, ed_navigation_msgs::GetGoalConstraint::Response& res);
 
     // Services
     ros::ServiceServer srv_get_goal_constraint_;
