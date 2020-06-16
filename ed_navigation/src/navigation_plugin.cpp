@@ -14,6 +14,7 @@
 #include <ros/console.h>
 
 #include <iomanip>
+#include <memory>
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -120,7 +121,7 @@ std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& compo
     for (std::vector<std::pair<geo::ShapePtr, geo::Transform> >::const_iterator it = sub_shapes.begin();
          it != sub_shapes.end(); ++it)
     {
-        geo::ShapeConstPtr ShapeC = boost::const_pointer_cast<geo::Shape>(it->first);
+        geo::ShapeConstPtr ShapeC = std::const_pointer_cast<geo::Shape>(it->first);
         std::string sub_shape_constraint = constructShapeConstraint(ShapeC, entity_pose * it->second.inverse(), offset);
         if (!sub_shape_constraint.empty())
         {
@@ -275,7 +276,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation_msgs::GetGoalCon
                 offset = room_offset_;
 
             std::string shape_constraint;
-            geo::CompositeShapeConstPtr composite = boost::dynamic_pointer_cast<const geo::CompositeShape>(it->second);
+            geo::CompositeShapeConstPtr composite = std::dynamic_pointer_cast<const geo::CompositeShape>(it->second);
             if (composite)
                 shape_constraint = constructCompositeShapeConstraint(composite, e->pose(), offset);
             else
