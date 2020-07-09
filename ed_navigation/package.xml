@@ -7,7 +7,9 @@
   <version>0.0.0</version>
   <description>No description available</description>
 
-  <maintainer email="s.v.d.dries@tue.nl">Sjoerd van den Dries</maintainer>
+  <author email="s.v.d.dries@tue.nl">Sjoerd van den Dries</author>
+
+  <maintainer email="MatthijsBurgh@outlook.com">Matthijs van der Burgh</maintainer>
 
   <license>BSD</license>
 
