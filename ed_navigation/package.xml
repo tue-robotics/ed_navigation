@@ -1,32 +1,29 @@
 <?xml version="1.0"?>
-<package>
+<?xml-model
+  href="http://download.ros.org/schema/package_format3.xsd"
+  schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>ed_navigation</name>
   <version>0.0.0</version>
   <description>No description available</description>
 
-  <maintainer email="s.v.d.dries@tue.nl">Sjoerd van den Dries</maintainer>
+  <author email="s.v.d.dries@tue.nl">Sjoerd van den Dries</author>
+
+  <maintainer email="MatthijsBurgh@outlook.com">Matthijs van der Burgh</maintainer>
 
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>cb_planner_msgs_srvs</build_depend>
-  <build_depend>ed</build_depend>
-  <build_depend>ed_navigation_msgs</build_depend>
-  <build_depend>ed_sensor_integration</build_depend>
-  <build_depend>nav_msgs</build_depend>
-  <build_depend>rgbd</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>roscpp</build_depend>
+  <depend>ed</depend>
+  <depend>ed_navigation_msgs</depend>
+  <depend>ed_sensor_integration</depend>
+  <depend>nav_msgs</depend>
+  <depend>rgbd</depend>
+  <depend>sensor_msgs</depend>
+  <depend>roscpp</depend>
 
-  <run_depend>cb_planner_msgs_srvs</run_depend>
-  <run_depend>ed</run_depend>
-  <run_depend>ed_navigation_msgs</run_depend>
-  <run_depend>ed_sensor_integration</run_depend>
-  <run_depend>nav_msgs</run_depend>
-  <run_depend>rgbd</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>python-docopt</run_depend>
+  <exec_depend>cb_base_navigation</exec_depend>
+  <exec_depend>python-docopt</exec_depend>
 
 </package>

@@ -5,7 +5,7 @@ project(ed_navigation)
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  cb_planner_msgs_srvs
+  cb_base_navigation_msgs
   ed
   ed_navigation_msgs
   ed_sensor_integration

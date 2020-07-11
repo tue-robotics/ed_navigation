@@ -13,8 +13,8 @@ Examples:
 import rospy
 import sys
 from ed_navigation.srv import GetGoalConstraint
-from cb_planner_msgs_srvs.srv import GetPlan
-from cb_planner_msgs_srvs.msg import PositionConstraint
+from cb_base_navigation.srv import GetPlan
+from cb_base_navigation.msg import PositionConstraint
 from docopt import docopt
 
 if __name__ == '__main__':
