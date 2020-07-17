@@ -29,7 +29,7 @@ void constructConstraint(const ed::ConvexHull& chull, std::stringstream& constra
 {
     if (chull.points.size() < 3)
     {
-        std::cout << "Error: Convex hull has to consist of at least three points !!" << std::endl;
+        ROS_ERROR("Convex hull has to consist of at least three points !!");
         return;
     }
 
