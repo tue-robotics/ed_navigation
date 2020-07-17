@@ -94,27 +94,6 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
                 }
             }
         }
-//        else if (convex_hull_enabled_)
-//        {
-//            if (e->convexHull().z_max + e->pose().t.z > min_z_)  // Filter the ground
-//            {
-
-//                const std::vector<geo::Vec2f>& chull_points = e->convexHull().points;
-//                for(std::vector<geo::Vec2f>::const_iterator it = chull_points.begin(); it != chull_points.end(); ++it)
-//                {
-//                    float x = it->x + e->pose().t.x;
-//                    float y = it->y + e->pose().t.y;
-
-//                    min.x = std::min<double>(x - unknown_obstacle_inflation_, min.x);
-//                    max.x = std::max<double>(x + unknown_obstacle_inflation_, max.x);
-
-//                    min.y = std::min<double>(y - unknown_obstacle_inflation_, min.y);
-//                    max.y = std::max<double>(y + unknown_obstacle_inflation_, max.y);
-
-//                    is_empty = false;
-//                }
-//            }
-//        }
     }
 
     // Bounds fix
@@ -164,26 +143,6 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, Map& map)
 
         }
     }
-//    else if (convex_hull_enabled_) // Do convex hull
-//    {
-//        if (e->convexHull().z_max + e->pose().t.z > min_z_ && e->convexHull().z_min + e->pose().t.z < max_z_)
-//        {
-//            const std::vector<geo::Vec2f>& chull_points = e->convexHull().points;
-//
-//            for (unsigned int i = 0; i < chull_points.size(); ++i)
-//            {
-//                int j = (i + 1) % chull_points.size();
-//
-//                geo::Vector3 p1w(chull_points[i].x + e->pose().t.x, chull_points[i].y + e->pose().t.y, 0);
-//                geo::Vector3 p2w(chull_points[j].x + e->pose().t.x, chull_points[j].y + e->pose().t.y, 0);
-//
-//                // Check if all points are on the map
-//                cv::Point2i p1, p2;
-//                if (map.worldToMap(p1w.x, p1w.y, p1.x, p1.y) && map.worldToMap(p2w.x, p2w.y, p2.x, p2.y) )
-//                    cv::line(map.image, p1, p2, value, unknown_obstacle_inflation_ / map.resolution() + 1);
-//            }
-//        }
-//    }
 }
 
 // ----------------------------------------------------------------------------------------------------
