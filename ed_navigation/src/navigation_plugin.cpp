@@ -176,7 +176,7 @@ void NavigationPlugin::initialize()
 
 // ----------------------------------------------------------------------------------------------------
 
-void NavigationPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& req)
+void NavigationPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& /*req*/)
 {
     // Check for services
     world_ = &world;
