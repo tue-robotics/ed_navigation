@@ -162,20 +162,7 @@ void NavigationPlugin::configure(tue::Configuration config)
     // Configure the occupancy grid publisher
     if (config.readGroup("occupancy_grid_publisher"))
     {
-        double res, min_z, max_z, unknown_obstacle_inflation;
-        std::string frame_id;
-        config.value("frame_id", frame_id);
-        config.value("resolution", res);
-
-        config.value("min_z", min_z);
-        config.value("max_z", max_z);
-
-        if (!config.value("unknown_obstacle_inflation", unknown_obstacle_inflation, tue::config::OPTIONAL))
-            unknown_obstacle_inflation = 0.0;
-
-        ROS_DEBUG_STREAM("[ED NAVIGATION] Using min_z: " << min_z << ",  max_z: " << max_z);
-        occupancy_grid_publisher_.configure(nh, res, min_z, max_z, frame_id, unknown_obstacle_inflation);
-
+        occupancy_grid_publisher_.configure(nh, config);
         config.endGroup();
     }
 }

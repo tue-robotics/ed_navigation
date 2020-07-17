@@ -1,10 +1,15 @@
 #ifndef occupancy_grid_publisher_h_
 #define occupancy_grid_publisher_h_
 
-#include <ros/ros.h>
-#include <geolib/datatypes.h>
 #include <ed/plugin.h>
 #include <ed/types.h>
+
+#include <geolib/datatypes.h>
+
+#include <ros/node_handle.h>
+#include <ros/publisher.h>
+
+#include <tue/config/configuration.h>
 
 #include "map.h"
 
@@ -15,8 +20,7 @@ public:
 
     OccupancyGridPublisher() : configured_(false) {}
 
-    void configure(ros::NodeHandle& nh, const double &res, const double& min_z, const double& max_z,
-                   const std::string &frame_id, double unknown_obstacle_inflation);
+    void configure(ros::NodeHandle& nh, tue::Configuration config);
 
     void publish(const ed::WorldModel& world);
 
@@ -40,10 +44,7 @@ private:
 
     double min_z_, max_z_;
 
-    // Inflation of unknown obstacles (in meters)
-    double unknown_obstacle_inflation_;
-
-    bool convex_hull_enabled_;
+    double min_map_size_x_, min_map_size_y_;
 
     // Map
     Map map_;
