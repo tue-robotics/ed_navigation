@@ -207,7 +207,7 @@ bool DepthSensorIntegrator::update()
     }
 
     sensor_msgs::PointCloud2 pointcloud2_msg;
-    pointcloud2_msg.header.frame_id = "/map";
+    pointcloud2_msg.header.frame_id = map_frame_;
     pointcloud2_msg.header.stamp = ros::Time::now();
 
     pointcloud2_msg.height = 1;

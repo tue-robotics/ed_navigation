@@ -36,7 +36,7 @@ public:
      * parametergroup: occupancy_grid_publisher
      * parameters:
      *      resolution: double, resolution of the occupancy grid (meters)
-     *      frame_id: id of the frame, probaly '/map'
+     *      frame_id: id of the frame, probaly 'map'
      *      min_z: double, only use the volume of object higher than min_z (meters)
      *      max_z: double, only use the volume of object lower than max_z (meters)
      *      default_offset: ???

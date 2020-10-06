@@ -31,7 +31,7 @@ public:
      * @param config
      * parametergroup: depth_sensor_integration
      * parameters:
-     *      frame_id: /map
+     *      frame_id: map
      *      topic: /amigo/top_kinect/rgbd
      *      num_samples: 640
      *      slope_threshold: 1

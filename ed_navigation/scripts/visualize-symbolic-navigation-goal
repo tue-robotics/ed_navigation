@@ -39,7 +39,7 @@ if __name__ == '__main__':
         print("")
 
         plan_srv = rospy.ServiceProxy('/{}/global_planner/get_plan_srv'.format(robot_name), GetPlan)
-        plan_srv(goal_position_constraints=[PositionConstraint(frame="/map",
+        plan_srv(goal_position_constraints=[PositionConstraint(frame="map",
                                                                constraint=resp.position_constraint_map_frame)])
         print("** Published Visualization Marker **")
     except rospy.ServiceException as e:
