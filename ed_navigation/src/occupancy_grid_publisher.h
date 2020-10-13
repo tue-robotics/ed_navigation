@@ -1,10 +1,15 @@
 #ifndef occupancy_grid_publisher_h_
 #define occupancy_grid_publisher_h_
 
-#include <ros/ros.h>
-#include <geolib/datatypes.h>
 #include <ed/plugin.h>
 #include <ed/types.h>
+
+#include <geolib/datatypes.h>
+
+#include <ros/node_handle.h>
+#include <ros/publisher.h>
+
+#include <tue/config/configuration.h>
 
 #include "map.h"
 
@@ -15,8 +20,20 @@ public:
 
     OccupancyGridPublisher() : configured_(false) {}
 
-    void configure(ros::NodeHandle& nh, const double &res, const double& min_z, const double& max_z,
-                   const std::string &frame_id, double unknown_obstacle_inflation);
+    /**
+     * @brief configure configure hook
+     * @param nh NodeHandle to use
+     * @param config Configuration object with the following parameters:
+     * parametergroup: occupancy_grid_publisher
+     * parameters:
+     *      frame_id (recommended: map): Frame id of the published costmap
+     *      resolution (recommended: 0.05): Resolution of the published costmap
+     *      min_z (recommended: 0.025): Only shaped above this height are taken into account
+     *      max_z (recommended: 1.8): Only shaped above this height are taken into account
+     *      min_map_size_x (optional, default 20): Minimal map size in x-direction, any entities with a shape outside this size will enlarge the map.
+     *      min_map_size_y (optional, default 20): Minimal map size in y-direction, any entities with a shape outside this size will enlarge the map.
+     */
+    void configure(ros::NodeHandle& nh, tue::Configuration config);
 
     void publish(const ed::WorldModel& world);
 
@@ -40,10 +57,7 @@ private:
 
     double min_z_, max_z_;
 
-    // Inflation of unknown obstacles (in meters)
-    double unknown_obstacle_inflation_;
-
-    bool convex_hull_enabled_;
+    double min_map_size_x_, min_map_size_y_;
 
     // Map
     Map map_;
