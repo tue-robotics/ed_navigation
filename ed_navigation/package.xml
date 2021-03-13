@@ -24,6 +24,7 @@
   <depend>roscpp</depend>
 
   <exec_depend>cb_base_navigation</exec_depend>
-  <exec_depend>python-docopt</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-docopt</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-docopt</exec_depend>
 
 </package>
