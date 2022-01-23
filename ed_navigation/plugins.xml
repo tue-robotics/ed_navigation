@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<class_libraries>
+  <library path="lib/libed_navigation_plugin">
+    <class name="ed_navigation/navigation" type="NavigationPlugin" base_class_type="ed::Plugin">
+      <description>Plugin to expose ROS interfaces for navigation</description>
+    </class>
+  </library>
+  <library path="lib/libed_kinect_navigation_plugin">
+    <class name="ed_navigation/rgbd" type="KinectNavigationPlugin" base_class_type="ed::Plugin">
+      <description>Plugin, but shouldn't, converting RGBD image into pointcloud for object avoidance.</description>
+    </class>
+  </library>
+</class_libraries>
