@@ -44,16 +44,16 @@ DepthSensorIntegrator::~DepthSensorIntegrator()
 
 void DepthSensorIntegrator::initialize(tue::Configuration config)
 {
-    std::string rgbd_topic;
-    if (config.value("topic", rgbd_topic))
-        image_buffer_.initialize(rgbd_topic);
-
     config.value("num_samples", num_samples_);
     config.value("slope_threshold", slope_threshold_);
     config.value("slope_window_size", slope_window_size_);
     config.value("min_distance", min_distance_);
     config.value("max_distance", max_distance_);
     config.value("frame_id", map_frame_);
+
+    std::string rgbd_topic;
+    if (config.value("topic", rgbd_topic))
+        image_buffer_.initialize(rgbd_topic, map_frame_);
 
     ros::NodeHandle nh("~");
     pointcloud2_publisher_ = nh.advertise<sensor_msgs::PointCloud2>("navigation/cloud", 20);
@@ -71,7 +71,7 @@ bool DepthSensorIntegrator::update()
     rgbd::ImageConstPtr image;
 
     geo::Pose3D sensor_pose;
-    if (!image_buffer_.nextImage(map_frame_, image, sensor_pose))
+    if (!image_buffer_.nextImage(image, sensor_pose))
         return false;
 
     // - - - - - - - - - - - - - - - - - - - - - - -
