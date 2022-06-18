@@ -130,9 +130,9 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, Map& map)
 
         for(std::vector<geo::Triangle>::const_iterator it = triangles.begin(); it != triangles.end(); ++it) {
 
-            geo::Vector3 p1w = e->pose() * it->p1_;
-            geo::Vector3 p2w = e->pose() * it->p2_;
-            geo::Vector3 p3w = e->pose() * it->p3_;
+            geo::Vector3 p1w = e->pose() * it->p1();
+            geo::Vector3 p2w = e->pose() * it->p2();
+            geo::Vector3 p3w = e->pose() * it->p3();
 
             // Filter if all points are above or all points are below
             if ( (p1w.getZ() < min_z_ && p2w.getZ() < min_z_ && p3w.getZ() < min_z_) || (p1w.getZ() > max_z_ && p2w.getZ() > max_z_ && p3w.getZ() > max_z_) )
