@@ -24,6 +24,4 @@ Map::~Map()
 void Map::setSizeAndClear(int width, int height)
 {
     image = cv::Mat::zeros(height, width, CV_8U);
-
 }
-

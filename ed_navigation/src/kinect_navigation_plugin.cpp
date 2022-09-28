@@ -23,7 +23,6 @@ void KinectNavigationPlugin::configure(tue::Configuration config)
 
 void KinectNavigationPlugin::initialize()
 {
-
 }
 
 // ----------------------------------------------------------------------------------------------------
