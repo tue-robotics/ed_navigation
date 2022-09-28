@@ -15,7 +15,7 @@
 
 void OccupancyGridPublisher::configure(ros::NodeHandle& nh, tue::Configuration config)
 {
-    double resolution;
+    double resolution = 0.;
     config.value("frame_id", frame_id_);
     config.value("resolution", resolution);
 
