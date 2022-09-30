@@ -23,12 +23,11 @@ void KinectNavigationPlugin::configure(tue::Configuration config)
 
 void KinectNavigationPlugin::initialize()
 {
-
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-void KinectNavigationPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& req)
+void KinectNavigationPlugin::process(const ed::WorldModel& /*world*/, ed::UpdateRequest& /*req*/)
 {
     // Publish the occupancy grid
     if (depth_sensor_integrator_.isInitialized())

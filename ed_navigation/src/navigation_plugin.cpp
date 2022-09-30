@@ -171,7 +171,6 @@ void NavigationPlugin::configure(tue::Configuration config)
 
 void NavigationPlugin::initialize()
 {
-
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -288,6 +287,3 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation_msgs::GetGoalCon
 }
 
 ED_REGISTER_PLUGIN(NavigationPlugin)
-
-
-

@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(ed_navigation)
 
+add_compile_options(-Wall -Werror=all)
+add_compile_options(-Wextra -Werror=extra)
+
 find_package(catkin REQUIRED COMPONENTS
   cb_base_navigation_msgs
   ed
@@ -18,6 +21,7 @@ catkin_package(
 
 include_directories(
   include
+  SYSTEM
   ${catkin_INCLUDE_DIRS}
 )
 

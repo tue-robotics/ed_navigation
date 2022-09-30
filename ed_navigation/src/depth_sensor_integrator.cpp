@@ -166,7 +166,8 @@ bool DepthSensorIntegrator::update()
 //                s1 = (slope_window_size_ * b1[2] - b1[0] * b1[1]) / (slope_window_size_ * b1[3] - b1[0] * b1[0]);
                 //            c1 = b1[1] / slope_window_size_ - s1 * (b1[0] / slope_window_size_);
 
-                double c2, s2;
+//                double c2, s2;
+                double s2;
                 cv::Vec4d b2 = buffer.at<cv::Vec4d>(y + slope_window_size_ / 2, 0)
                         - buffer.at<cv::Vec4d>(y - slope_window_size_ / 2, 0);
                 s2 = (slope_window_size_ * b2[2] - b2[0] * b2[1]) / (slope_window_size_ * b2[3] - b2[0] * b2[0]);
