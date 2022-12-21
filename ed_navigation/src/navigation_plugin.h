@@ -6,7 +6,7 @@
 
 #include <ed_navigation_msgs/GetGoalConstraint.h>
 
-#include "../../src/occupancy_grid_publisher.h"
+#include "ed/navigation/occupancy_grid_publisher.h"
 
 #include <ros/callback_queue.h>
 
@@ -74,7 +74,7 @@ private:
     const ed::WorldModel* world_;
 
     // Occupancy grid publisher
-    OccupancyGridPublisher occupancy_grid_publisher_;
+    ed::navigation::OccupancyGridPublisher occupancy_grid_publisher_;
 
     // Parameters
     std::string goal_constraint_service_name_;

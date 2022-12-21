@@ -1,4 +1,4 @@
-#include "ed_navigation/navigation_plugin.h"
+#include "navigation_plugin.h"
 
 #include <ed/entity.h>
 #include <ed/error_context.h>
