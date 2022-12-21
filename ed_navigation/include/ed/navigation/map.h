@@ -1,9 +1,15 @@
-#ifndef _MAP_H_
-#define _MAP_H_
+#ifndef ED_NAVIGATION_MAP_H_
+#define ED_NAVIGATION_MAP_H_
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <geolib/datatypes.h>
+
+namespace ed
+{
+
+namespace navigation
+{
 
 class Map
 {
@@ -60,4 +66,8 @@ private:
 
 };
 
-#endif
+} // namespace navigation
+
+} // namespace ed
+
+#endif // ED_NAVIGATION_MAP_H_

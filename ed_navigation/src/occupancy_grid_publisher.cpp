@@ -1,4 +1,4 @@
-#include "occupancy_grid_publisher.h"
+#include "ed/navigation/occupancy_grid_publisher.h"
 
 #include <nav_msgs/OccupancyGrid.h>
 
@@ -9,7 +9,16 @@
 #include <ed/entity.h>
 #include <ed/measurement.h>
 
+#include <opencv2/core/types.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include <tue/config/reader.h>
+
+namespace ed
+{
+
+namespace navigation
+{
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -184,3 +193,8 @@ void OccupancyGridPublisher::publishMapMsg(const Map& map)
 }
 
 // ----------------------------------------------------------------------------------------------------
+
+} // namespace navigation
+
+} // namespace ed
+

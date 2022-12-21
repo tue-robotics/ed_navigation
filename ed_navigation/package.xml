@@ -5,7 +5,9 @@
 <package format="3">
   <name>ed_navigation</name>
   <version>0.0.0</version>
-  <description>No description available</description>
+  <description>
+  Plugin for the ED world model, which provides ROS interfaces for an oocupancy grid and constrained navigation.
+  </description>
 
   <author email="s.v.d.dries@tue.nl">Sjoerd van den Dries</author>
 
@@ -16,19 +18,27 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>ed</depend>
-  <depend>ed_navigation_msgs</depend>
-  <depend>ed_sensor_integration</depend>
-  <depend>nav_msgs</depend>
-  <depend>rgbd</depend>
-  <depend>sensor_msgs</depend>
+  <depend>geolib2</depend>
+  <depend>libopencv-dev</depend>
   <depend>roscpp</depend>
+  <depend>tue_config</depend>
 
-  <exec_depend>cb_base_navigation</exec_depend>
-  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-docopt</exec_depend>
-  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-docopt</exec_depend>
+  <build_depend>ed_navigation_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+
+  <exec_depend>cb_base_navigation_msgs</exec_depend>
+  <exec_depend>ed_navigation_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>python3-docopt</exec_depend>
+  <exec_depend>rospy</exec_depend>
+
+  <test_depend>catkin_lint_cmake</test_depend>
+
+  <doc_depend>doxygen</doc_depend>
 
   <export>
     <ed plugin="${prefix}/plugins.xml" />
+    <rosdoc config="rosdoc.yaml" />
   </export>
 
 </package>

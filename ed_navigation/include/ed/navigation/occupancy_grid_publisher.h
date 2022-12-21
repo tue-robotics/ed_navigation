@@ -1,5 +1,5 @@
-#ifndef occupancy_grid_publisher_h_
-#define occupancy_grid_publisher_h_
+#ifndef ED_NAVIGATION_OCCUPANCY_GRID_PUBLISHER_H_
+#define ED_NAVIGATION_OCCUPANCY_GRID_PUBLISHER_H_
 
 #include <ed/plugin.h>
 #include <ed/types.h>
@@ -12,6 +12,12 @@
 #include <tue/config/configuration.h>
 
 #include "map.h"
+
+namespace ed
+{
+
+namespace navigation
+{
 
 class OccupancyGridPublisher
 {
@@ -63,4 +69,8 @@ private:
     Map map_;
 };
 
-#endif
+} // namespace navigation
+
+} // namespace ed
+
+#endif // ED_NAVIGATION_OCCUPANCY_GRID_PUBLISHER_H_

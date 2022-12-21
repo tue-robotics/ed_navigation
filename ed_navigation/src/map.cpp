@@ -1,4 +1,10 @@
-#include "map.h"
+#include "ed/navigation/map.h"
+
+namespace ed
+{
+
+namespace navigation
+{
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -25,3 +31,9 @@ void Map::setSizeAndClear(int width, int height)
 {
     image = cv::Mat::zeros(height, width, CV_8U);
 }
+
+// ----------------------------------------------------------------------------------------------------
+
+} // namespace navigation
+
+} // namespace ed
