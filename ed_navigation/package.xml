@@ -5,7 +5,9 @@
 <package format="3">
   <name>ed_navigation</name>
   <version>0.0.0</version>
-  <description>No description available</description>
+  <description>
+  Plugin for the ED world model, which provides ROS interfaces for an oocupancy grid and constrained navigation.
+  </description>
 
   <author email="s.v.d.dries@tue.nl">Sjoerd van den Dries</author>
 
@@ -29,6 +31,8 @@
   <exec_depend>nav_msgs</exec_depend>
   <exec_depend>python3-docopt</exec_depend>
   <exec_depend>rospy</exec_depend>
+
+  <test_depend>catkin_lint_cmake</test_depend>
 
   <export>
     <ed plugin="${prefix}/plugins.xml" />
