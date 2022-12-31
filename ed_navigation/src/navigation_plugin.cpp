@@ -188,12 +188,6 @@ void NavigationPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& /
 
 // ----------------------------------------------------------------------------------------------------
 
-/**
- * @brief NavigationPlugin::srvGetGoalConstraint Create a constraint to navigate to a specific volume.
- * @param req service request
- * @param res service result
- * @return bool
- */
 bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation_msgs::GetGoalConstraint::Request& req, ed_navigation_msgs::GetGoalConstraint::Response& res)
 {
     if (req.entity_ids.size() != req.area_names.size())
