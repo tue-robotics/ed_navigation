@@ -60,10 +60,10 @@ public:
 private:
 
     /**
-     * @brief Get goal constraint for navigation to objects in ED by a ros service call
-     * @param req   ed_navigation::GetGoalConstraint::Request&
-     * @param res   ed_navigation::GetGoalConstraint::Response&
-     * @return bool
+     * @brief Get goal constraint for navigation to volumes of entities objects in ED
+     * @param req service request
+     * @param res service result
+     * @return bool Success
      */
     bool srvGetGoalConstraint(const ed_navigation_msgs::GetGoalConstraint::Request& req, ed_navigation_msgs::GetGoalConstraint::Response& res);
 
