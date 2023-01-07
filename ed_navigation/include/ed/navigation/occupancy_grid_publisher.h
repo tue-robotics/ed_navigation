@@ -26,6 +26,8 @@ public:
 
     OccupancyGridPublisher() : configured_(false) {}
 
+    ~OccupancyGridPublisher() = default;
+
     /**
      * @brief configure configure hook
      * @param nh NodeHandle to use
