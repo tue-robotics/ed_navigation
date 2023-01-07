@@ -23,12 +23,12 @@ public:
     /**
      * @brief constructor
      */
-    NavigationPlugin() {}
+    NavigationPlugin();
 
     /**
      * @brief destructor
      */
-    virtual ~NavigationPlugin() {}
+    virtual ~NavigationPlugin();
 
     /**
      * @brief configure

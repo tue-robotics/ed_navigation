@@ -139,6 +139,19 @@ std::string constructCompositeShapeConstraint(geo::CompositeShapeConstPtr& compo
 
 // ----------------------------------------------------------------------------------------------------
 
+NavigationPlugin::NavigationPlugin()
+{
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+NavigationPlugin::~NavigationPlugin()
+{
+    srv_get_goal_constraint_.shutdown();
+}
+
+// ----------------------------------------------------------------------------------------------------
+
 void NavigationPlugin::configure(tue::Configuration config)
 {
     ros::NodeHandle nh("~/navigation");
