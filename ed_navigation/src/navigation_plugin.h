@@ -75,9 +75,6 @@ private:
 
     // Occupancy grid publisher
     ed::navigation::OccupancyGridPublisher occupancy_grid_publisher_;
-
-    // Parameters
-    std::string goal_constraint_service_name_;
     
     // Default
     double default_offset_;
