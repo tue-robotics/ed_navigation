@@ -237,7 +237,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation_msgs::GetGoalCon
 
         if(req.area_names[i] == "near")
         {
-            if (!e->shape())
+            if (!e->visual())
             {
                 res.error_msg = "Navigating to area 'near' of entity '" + req.entity_ids[i] + "' isn't possible, because it doesn't have a shape.";
                 continue;
@@ -249,7 +249,7 @@ bool NavigationPlugin::srvGetGoalConstraint(const ed_navigation_msgs::GetGoalCon
                 geo::Vec3d point3d = e->pose() * geo::Vec3d(it->x, it->y, 0.0);
                 points.push_back(geo::Vec2f(point3d.x, point3d.y));
             }
-                
+
             ed::ConvexHull chull; // In MAP frame
             ed::convex_hull::createAbsolute(points, 0.0, 0.1, chull);
             offset = default_offset_;

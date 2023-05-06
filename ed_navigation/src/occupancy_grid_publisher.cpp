@@ -85,7 +85,7 @@ bool OccupancyGridPublisher::getMapData(const ed::WorldModel& world, std::vector
     for(ed::WorldModel::const_iterator it = world.begin(); it != world.end(); ++it)
     {
         const ed::EntityConstPtr& e = *it;
-        geo::ShapeConstPtr shape = e->shape();
+        geo::ShapeConstPtr shape = e->collision();
 
         if (!e->has_pose() || !shape || e->existenceProbability() < 0.95 || e->hasFlag("self"))
             continue;
@@ -132,7 +132,7 @@ void OccupancyGridPublisher::updateMap(const ed::EntityConstPtr& e, Map& map)
 {
     int value = 100;
 
-    geo::ShapeConstPtr shape = e->shape();
+    geo::ShapeConstPtr shape = e->collision();
     if (shape)  // Do shape
     {
         const std::vector<geo::Triangle>& triangles = shape->getMesh().getTriangles();
